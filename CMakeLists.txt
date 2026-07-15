@@ -1,6 +1,8 @@
-cmake_minimum_required(version 3.16)
+cmake_minimum_required(VERSION 3.16)
 
-project(FinanCell version 0.1.0 LANGUAGES CXX)
+project(FinanCell 
+    VERSION 0.1.0 
+    LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
