@@ -18,4 +18,4 @@ class User
         std::string m_password;
 };
 
-#endif USER_H
+#endif // USER_H
