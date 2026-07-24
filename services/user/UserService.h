@@ -17,11 +17,14 @@ class UserService
 
         UserService();
         bool createUser(std::string& username, std::string& displayName, std::string& password);
-        bool authenticateUser(const std::string& username, const std::string& password);
         bool userExists(const std::string& username) const;
         bool isUsernameLengthValid(const std::string& username) const;
         bool isDisplayNameLengthValid(const std::string& displayName) const;
         bool isPasswordLengthValid(const std::string& password) const;
+
+        const User* authenticateUser(const std::string& username, const std::string& password);
+        const User* findUserByUsername(const std::string& username) const;
+
         void printUsers() const;
 
     private:

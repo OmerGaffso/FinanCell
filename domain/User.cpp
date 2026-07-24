@@ -3,7 +3,7 @@
 User::User(const std::string& username, const std::string& displayName, const std::string& password)
     :m_username(username), m_displayName(displayName), m_password(password)
 {
-    static uint8_t nextUserID = 1; // Static variable to keep track of the next user ID
+    static uint16_t nextUserID = 1; // Static variable to keep track of the next user ID
     m_userID = nextUserID++; // Assign the current value and then increment for the
 }
 
@@ -17,7 +17,7 @@ std::string User::getDisplayName() const
     return m_displayName;
 }
 
-uint8_t User::getUserID() const
+uint16_t User::getUserID() const
 {
     return m_userID;
 }
