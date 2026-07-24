@@ -16,15 +16,67 @@ void consoleUI::run_app()
                 isRunning = false;
                 break;
             case 1:
-                std::cout << "Cannot create account yet.\n" << std::endl;
+                create_account();
                 break;
             case 2:
+                print_users();
+                break;
+            case 3:
                 std::cout << "Cannot create a cell yet.\n" << std::endl;
-            
+                break;
             default:
+                std::cout << "Please select a valid menu option.\n" << std::endl;
                 break;
         }
     }
+}
+
+void consoleUI::create_account()
+{
+    std::string username;
+    std::string displayName;
+    std::string password;
+
+    std::cout << "Username: ";
+    std::getline(std::cin, username);
+
+    std::cout << "Display name: ";
+    std::getline(std::cin, displayName);
+
+    std::cout << "Password: ";
+    std::getline(std::cin, password);
+
+    if (username.empty())
+    {
+        std::cout << "Username cannot be empty.\n" << std::endl;
+        return;
+    } 
+    if (displayName.empty())
+    {
+        std::cout << "Display name cannot be empty.\n" << std::endl;
+        return;
+    }
+    if (password.empty())
+    {
+        std::cout << "Password cannot be empty.\n" << std::endl;
+        return;
+    }
+
+    if (m_userService.createUser(username, displayName, password))
+    {
+        std::cout << "Account created successfully.\n" << std::endl;
+    }
+    else
+    {
+        std::cout << "Could not create the account.\n" << std::endl;
+    }
+}
+
+void consoleUI::print_users() const
+{
+    std::cout << "\nCurrent users:" << std::endl;
+    m_userService.printUsers();
+    std::cout << std::endl;
 }
 
 void consoleUI::display_main_menu() const
@@ -33,7 +85,8 @@ void consoleUI::display_main_menu() const
     std::cout << "FinanCell App" << std::endl;
     std::cout << "==============" << std::endl;
     std::cout << "1. Create Account" << std::endl;
-    std::cout << "2. Create Cell" << std::endl;
+    std::cout << "2. Print Users" << std::endl;
+    std::cout << "3. Create Cell" << std::endl;
     std::cout << "0. Exit" << std::endl;
     std::cout << "==============" << std::endl;
 }
@@ -53,5 +106,6 @@ int consoleUI::read_choice() const
         return -1; // Return an invalid choice
     }
 
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return choice;
 }
