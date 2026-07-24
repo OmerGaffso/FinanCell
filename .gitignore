@@ -24,3 +24,8 @@ FinanCell
 
 # Operating system files
 .DS_Store
+
+# SQLite database files
+data/*.db
+data/*.db-shm
+data/*.db-wal
