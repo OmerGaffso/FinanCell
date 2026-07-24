@@ -1,5 +1,5 @@
-#ifndef USER_H
-#define USER_H
+#pragma once
+
 #include <string>
 
 class User 
@@ -17,5 +17,3 @@ class User
         uint8_t m_userID;
         std::string m_password;
 };
-
-#endif // USER_H
