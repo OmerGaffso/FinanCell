@@ -22,17 +22,21 @@ bool UserService::createUser(std::string& username, std::string& displayName, st
     return true;
 }
 
-bool UserService::authenticateUser(const std::string& username, const std::string& password)
+const User* UserService::authenticateUser(const std::string& username, const std::string& password)
 {
-    for (const User& user : m_users)
+    User* user = const_cast<User*>(findUserByUsername(username));
+
+    if (user == nullptr)
     {
-        if (user.getUsername() == username && user.checkPassword(password))
-        {
-            return true;
-        }
+        return nullptr;
     }
 
-    return false;
+    if (!user->checkPassword(password))
+    {
+        return nullptr;
+    }
+
+    return user;
 }
 
 bool UserService::userExists(const std::string& username) const
@@ -65,6 +69,20 @@ bool UserService::isPasswordLengthValid(const std::string& password) const
 {
     const std::size_t length = trim(password).length();
     return length >= MIN_PASSWORD_LENGTH && length <= MAX_PASSWORD_LENGTH;
+}
+
+const User* UserService::findUserByUsername(const std::string& username) const
+{
+    const std::string normalizedUsername = normalizeText(username);
+
+    for (const User& user : m_users)
+    {
+        if (user.getUsername() == normalizedUsername)
+        {
+            return &user;
+        }
+    }
+    return nullptr;
 }
 
 void UserService::printUsers() const
