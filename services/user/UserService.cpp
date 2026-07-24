@@ -1,10 +1,14 @@
 #include "UserService.h"
 #include <iostream>
+#include <string>
 
 UserService::UserService() {};
 
-bool UserService::createUser(const std::string& username, const std::string& displayName, const std::string& password)
+bool UserService::createUser(std::string& username, std::string& displayName, std::string& password)
 {
+    username = normalizeText(username);
+    displayName = trim(displayName);
+    password = normalizeText(password);
     m_users.emplace_back(username, displayName, password);
     return true;
 }
@@ -22,6 +26,18 @@ bool UserService::authenticateUser(const std::string& username, const std::strin
     return false;
 }
 
+bool UserService::userExists(const std::string& username) const
+{
+    for (const User& user : m_users)
+    {
+        if (user.getUsername() == username)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void UserService::printUsers() const
 {
     if (m_users.empty())
@@ -32,6 +48,33 @@ void UserService::printUsers() const
 
     for (const User& user : m_users)
     {
-        std::cout << user.getUsername() << '\n';
+        std::cout << "Username: " << user.getUsername() << 
+                    ", Display Name: " << user.getDisplayName() << std::endl;
     }
+}
+
+std::string UserService::normalizeText(const std::string& text) const
+{
+    return toLower(trim(text));
+}
+
+std::string UserService::trim(const std::string& str) const
+{
+    size_t start = str.find_first_not_of(" \t");
+    size_t end = str.find_last_not_of(" \t");
+    if (start != std::string::npos && end != std::string::npos)
+    {
+        return str.substr(start, end - start + 1);
+    }
+    return "";
+}
+
+std::string UserService::toLower(const std::string& str) const
+{
+    std::string lowerStr = str;
+    for (char& c : lowerStr)
+    {
+        c = std::tolower(c);
+    }
+    return lowerStr;
 }

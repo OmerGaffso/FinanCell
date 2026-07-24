@@ -39,26 +39,43 @@ void consoleUI::create_account()
 
     std::cout << "Username: ";
     std::getline(std::cin, username);
-
-    std::cout << "Display name: ";
-    std::getline(std::cin, displayName);
-
-    std::cout << "Password: ";
-    std::getline(std::cin, password);
-
+    
     if (username.empty())
     {
         std::cout << "Username cannot be empty.\n" << std::endl;
         return;
-    } 
+    }
+    if (m_userService.userExists(username))
+    {
+        std::cout << "User already exists.\n" << std::endl;
+        return;
+    }
+    if (!checkSpaces(username))
+    {
+        std::cout << "Username cannot contain spaces.\n" << std::endl;
+        return;
+    }
+    
+    std::cout << "Display name: ";
+    std::getline(std::cin, displayName);
+
     if (displayName.empty())
     {
         std::cout << "Display name cannot be empty.\n" << std::endl;
         return;
     }
+
+    std::cout << "Password: ";
+    std::getline(std::cin, password);
+
     if (password.empty())
     {
         std::cout << "Password cannot be empty.\n" << std::endl;
+        return;
+    }
+    if (!checkSpaces(password))
+    {
+        std::cout << "Password cannot contain spaces.\n" << std::endl;
         return;
     }
 
@@ -108,4 +125,9 @@ int consoleUI::read_choice() const
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return choice;
+}
+
+bool consoleUI::checkSpaces(const std::string& text) const
+{
+    return text.find(' ') == std::string::npos;
 }
