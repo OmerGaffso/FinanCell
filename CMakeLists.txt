@@ -11,6 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(FinanCell 
     main.cpp
     ui/console/consoleUI.cpp
+    domain/user.cpp
+    services/user/UserService.h
 )
 
 target_include_directories(FinanCell
