@@ -7,7 +7,14 @@ void consoleUI::run_app()
     bool isRunning = true;
     while(isRunning)
     {
-        display_main_menu();
+        if (m_currentUserID == 0)
+        {
+            display_main_menu();
+        }
+        else
+        {
+            display_user_action_menu();
+        }
         int choice;
         if (!read_choice(choice))
         {
@@ -15,24 +22,46 @@ void consoleUI::run_app()
             break;
         }
 
-        switch (choice)
+        if (m_currentUserID ==0)
         {
-            case 0: 
-                std::cout << "GoodBye!\n" << std::endl;
-                isRunning = false;
-                break;
-            case 1:
-                create_account();
-                break;
-            case 2:
-                account_login();
-                break;
-            case 3:
-                print_users();
-                break;
-            default:
-                std::cout << "Please select a valid menu option.\n" << std::endl;
-                break;
+            switch (choice)
+            {
+                case 0: 
+                    std::cout << "GoodBye!\n" << std::endl;
+                    isRunning = false;
+                    break;
+                case 1:
+                    create_account();
+                    break;
+                case 2:
+                    account_login();
+                    break;
+                case 3:
+                    print_users();
+                    break;
+                default:
+                    std::cout << "Please select a valid menu option.\n" << std::endl;
+                    break;
+            }
+        }
+        else
+        {
+            switch (choice)
+            {
+                case 0:
+                    std::cout << "Logging out...\n" << std::endl;
+                    m_currentUserID = 0; // Reset current user ID on logout
+                    break;
+                case 1:
+                    std::cout << "Create Cell functionality is not implemented yet.\n" << std::endl;
+                    break;
+                case 2:
+                    std::cout << "View Cells functionality is not implemented yet.\n" << std::endl;
+                    break;
+                default:
+                    std::cout << "Please select a valid menu option.\n" << std::endl;
+                    break;
+            }
         }
     }
 }
