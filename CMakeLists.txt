@@ -11,13 +11,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(FinanCell 
     main.cpp
     ui/console/consoleUI.cpp
-    domain/user.cpp
-    services/user/UserService.h
+    domain/User.cpp
+    services/user/UserService.cpp
 )
 
 target_include_directories(FinanCell
     PRIVATE
-    ${CMAKE_CURRENT_SOURC_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
