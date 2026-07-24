@@ -16,4 +16,5 @@ private:
 
 
     UserService m_userService;
+    uint8_t m_currentUserID = -1; // Track the current user ID
 };

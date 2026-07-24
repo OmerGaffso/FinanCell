@@ -40,9 +40,12 @@ void consoleUI::create_account()
     std::cout << "Username: ";
     std::getline(std::cin, username);
     
-    if (username.empty())
+    if (!m_userService.isUsernameLengthValid(username))
     {
-        std::cout << "Username cannot be empty.\n" << std::endl;
+        std::cout << "Username must be between "
+                  << UserService::MIN_USERNAME_LENGTH << " and "
+                  << UserService::MAX_USERNAME_LENGTH
+                  << " characters.\n" << std::endl;
         return;
     }
     if (m_userService.userExists(username))
@@ -59,18 +62,24 @@ void consoleUI::create_account()
     std::cout << "Display name: ";
     std::getline(std::cin, displayName);
 
-    if (displayName.empty())
+    if (!m_userService.isDisplayNameLengthValid(displayName))
     {
-        std::cout << "Display name cannot be empty.\n" << std::endl;
+        std::cout << "Display name must be between "
+                  << UserService::MIN_DISPLAY_NAME_LENGTH << " and "
+                  << UserService::MAX_DISPLAY_NAME_LENGTH
+                  << " characters.\n" << std::endl;
         return;
     }
 
     std::cout << "Password: ";
     std::getline(std::cin, password);
 
-    if (password.empty())
+    if (!m_userService.isPasswordLengthValid(password))
     {
-        std::cout << "Password cannot be empty.\n" << std::endl;
+        std::cout << "Password must be between "
+                  << UserService::MIN_PASSWORD_LENGTH << " and "
+                  << UserService::MAX_PASSWORD_LENGTH
+                  << " characters.\n" << std::endl;
         return;
     }
     if (!checkSpaces(password))
