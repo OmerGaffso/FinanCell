@@ -8,7 +8,7 @@ bool UserService::createUser(std::string& username, std::string& displayName, st
 {
     username = normalizeText(username);
     displayName = trim(displayName);
-    password = normalizeText(password);
+    password = trim(password);
     m_users.emplace_back(username, displayName, password);
     return true;
 }
