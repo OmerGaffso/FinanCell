@@ -1,9 +1,8 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include "../../domain/User.h"
-
-#ifndef USER_SERVICE_H
-#define USER_SERVICE_H
 
 class UserService 
 {
@@ -16,5 +15,3 @@ class UserService
     private:
         std::vector<User> m_users;
 };
-
-#endif // USER_SERVICE_H

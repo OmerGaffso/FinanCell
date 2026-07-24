@@ -11,13 +11,25 @@ bool UserService::createUser(const std::string& username, const std::string& dis
 
 bool UserService::authenticateUser(const std::string& username, const std::string& password)
 {
-    // TODO - Check if the user exists and if the password matches.
-    // If authentication is successful, return true; otherwise, return false.
-    return true;
+    for (const User& user : m_users)
+    {
+        if (user.getUsername() == username && user.checkPassword(password))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void UserService::printUsers() const
 {
+    if (m_users.empty())
+    {
+        std::cout << "No users have been created.\n";
+        return;
+    }
+
     for (const User& user : m_users)
     {
         std::cout << user.getUsername() << '\n';
