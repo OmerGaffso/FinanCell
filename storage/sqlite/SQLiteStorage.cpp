@@ -52,5 +52,6 @@ void SQLiteStorage::executeSQL(const std::string& sql)
             errorMsg += errMsg;
             sqlite3_free(errMsg);
         }
+        throw std::runtime_error(errorMsg);
     }
 }

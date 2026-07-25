@@ -5,6 +5,7 @@
 class consoleUI
 {
 public:
+    consoleUI(UserService& userService) : m_userService(userService) {}
     void run_app();
 
 private:
