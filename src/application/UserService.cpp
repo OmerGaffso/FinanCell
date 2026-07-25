@@ -46,7 +46,7 @@ bool UserService::userExists(const std::string& username) const
 {
     const std::string normalizedUsername = normalizeText(username);
 
-    if (m_storage.isUserExists(normalizedUsername))
+    if (m_storage.userExists(normalizedUsername))
         return true;
 
     return false;
@@ -74,7 +74,7 @@ const User* UserService::findUserByUsername(const std::string& username) const
 {
     const std::string normalizedUsername = normalizeText(username);
     
-    if (!m_storage.isUserExists(normalizedUsername))
+    if (!m_storage.userExists(normalizedUsername))
         return nullptr;
 
     User* user = m_storage.findUserByUsername(normalizedUsername);

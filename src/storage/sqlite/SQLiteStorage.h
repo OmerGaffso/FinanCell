@@ -17,7 +17,7 @@ class SQLiteStorage
 
         void initializeDatabase();
         bool insertUser(const std::string& username, const std::string& displayName, const std::string& passwordHash);
-        bool isUserExists(const std::string& username);
+        bool userExists(const std::string& username);
         User* findUserByUsername(const std::string& username);
 
         void printUsers() const;

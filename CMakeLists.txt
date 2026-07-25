@@ -12,7 +12,7 @@ find_package(SQLite3 REQUIRED)
 
 add_executable(FinanCell 
     src/main.cpp
-    src/ui/console/consoleUI.cpp
+    src/ui/console/ConsoleUI.cpp
     src/domain/User.cpp
     src/application/UserService.cpp
     src/storage/sqlite/SQLiteStorage.cpp

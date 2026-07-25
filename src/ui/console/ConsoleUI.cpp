@@ -1,28 +1,28 @@
-#include "ui/console/consoleUI.h"
+#include "ui/console/ConsoleUI.h"
 #include <iostream>
 #include <limits>
 
-void consoleUI::run_app()
+void ConsoleUI::runApp()
 {
     bool isRunning = true;
     while(isRunning)
     {
-        if (m_currentUserID == 0)
+        if (m_currentUserId == 0)
         {
-            display_main_menu();
+            displayMainMenu();
         }
         else
         {
-            display_user_action_menu();
+            displayUserActionMenu();
         }
         int choice;
-        if (!read_choice(choice))
+        if (!readChoice(choice))
         {
             std::cout << "\nInput closed. Goodbye!\n";
             break;
         }
 
-        if (m_currentUserID ==0)
+        if (m_currentUserId == 0)
         {
             switch (choice)
             {
@@ -31,13 +31,13 @@ void consoleUI::run_app()
                     isRunning = false;
                     break;
                 case 1:
-                    create_account();
+                    createAccount();
                     break;
                 case 2:
-                    account_login();
+                    login();
                     break;
                 case 3:
-                    print_users();
+                    printUsers();
                     break;
                 default:
                     std::cout << "Please select a valid menu option.\n" << std::endl;
@@ -50,7 +50,7 @@ void consoleUI::run_app()
             {
                 case 0:
                     std::cout << "Logging out...\n" << std::endl;
-                    m_currentUserID = 0; // Reset current user ID on logout
+                    m_currentUserId = 0; // Reset current user ID on logout
                     break;
                 case 1:
                     std::cout << "Create Cell functionality is not implemented yet.\n" << std::endl;
@@ -66,7 +66,7 @@ void consoleUI::run_app()
     }
 }
 
-void consoleUI::create_account()
+void ConsoleUI::createAccount()
 {
     std::string username;
     std::string displayName;
@@ -74,7 +74,7 @@ void consoleUI::create_account()
 
     std::cout << "Username: ";
     std::getline(std::cin, username);
-    if (!validate_username(username))
+    if (!validateUsername(username))
     {
         std::cout << "Invalid username.\n" << std::endl;
         return;
@@ -83,7 +83,7 @@ void consoleUI::create_account()
     std::cout << "Display name: ";
     std::getline(std::cin, displayName);
 
-    if (!validate_display_name(displayName))
+    if (!validateDisplayName(displayName))
     {
         std::cout << "Invalid display name.\n" << std::endl;
         return;
@@ -92,7 +92,7 @@ void consoleUI::create_account()
     std::cout << "Password: ";
     std::getline(std::cin, password);
 
-    if (!validate_password(password))
+    if (!validatePassword(password))
     {
         std::cout << "Invalid password.\n" << std::endl;
         return;
@@ -108,7 +108,7 @@ void consoleUI::create_account()
     }
 }
 
-void consoleUI::account_login()
+void ConsoleUI::login()
 {
     std::string username;
     std::string password;
@@ -121,7 +121,7 @@ void consoleUI::account_login()
 
     if (const User* user = m_userService.authenticateUser(username, password))
     {
-        m_currentUserID = user->getUserID();
+        m_currentUserId = user->getUserId();
         std::cout << "Login successful. Welcome, " << user->getDisplayName() << "!\n" << std::endl;
     }
     else
@@ -130,14 +130,14 @@ void consoleUI::account_login()
     }
 }
 
-void consoleUI::print_users() const
+void ConsoleUI::printUsers() const
 {
     std::cout << "\nCurrent users:" << std::endl;
     m_userService.printUsers();
     std::cout << std::endl;
 }
 
-void consoleUI::display_main_menu() const
+void ConsoleUI::displayMainMenu() const
 {
     std::cout << "==============" << std::endl;
     std::cout << "FinanCell App" << std::endl;
@@ -149,7 +149,7 @@ void consoleUI::display_main_menu() const
     std::cout << "==============" << std::endl;
 }
 
-void consoleUI::display_user_action_menu() const
+void ConsoleUI::displayUserActionMenu() const
 {
     std::cout << "==============" << std::endl;
     std::cout << "User Actions" << std::endl;
@@ -160,7 +160,7 @@ void consoleUI::display_user_action_menu() const
     std::cout << "==============" << std::endl;
 }
 
-bool consoleUI::read_choice(int& choice) const
+bool ConsoleUI::readChoice(int& choice) const
 {
     std::cout << "Enter your choice: ";
     std::cin >> choice;
@@ -183,13 +183,13 @@ bool consoleUI::read_choice(int& choice) const
     return true;
 }
 
-bool consoleUI::checkSpaces(const std::string& text) const
+bool ConsoleUI::checkSpaces(const std::string& text) const
 {
     return  (text.find(' ') == std::string::npos) || (text.find('\t') == std::string::npos) || 
             (text.find('\n') == std::string::npos);
 }
 
-bool consoleUI::validate_username(const std::string& username) const
+bool ConsoleUI::validateUsername(const std::string& username) const
 {
     if (!m_userService.isUsernameLengthValid(username))
     {
@@ -213,7 +213,7 @@ bool consoleUI::validate_username(const std::string& username) const
     return true;
 }
 
-bool consoleUI::validate_display_name(const std::string& displayName) const
+bool ConsoleUI::validateDisplayName(const std::string& displayName) const
 {
     if (!m_userService.isDisplayNameLengthValid(displayName))
     {
@@ -226,7 +226,7 @@ bool consoleUI::validate_display_name(const std::string& displayName) const
     return true;
 }
 
-bool consoleUI::validate_password(const std::string& password) const
+bool ConsoleUI::validatePassword(const std::string& password) const
 {    if (!m_userService.isPasswordLengthValid(password))
     {
         std::cout << "Password must be between "

@@ -2,7 +2,7 @@
 #include <exception>
 #include <filesystem>
 
-#include "ui/console/consoleUI.h"
+#include "ui/console/ConsoleUI.h"
 #include "storage/sqlite/SQLiteStorage.h"
 
 int main()
@@ -16,8 +16,8 @@ int main()
 
         UserService userService{storage};
 
-        consoleUI ui{userService};
-        ui.run_app();
+        ConsoleUI ui{userService};
+        ui.runApp();
     }
     catch (const std::exception& e)
     {

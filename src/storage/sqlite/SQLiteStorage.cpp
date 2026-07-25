@@ -58,7 +58,7 @@ bool SQLiteStorage::insertUser(const std::string& username, const std::string& d
     }
 }
 
-bool SQLiteStorage::isUserExists(const std::string& username)
+bool SQLiteStorage::userExists(const std::string& username)
 {
     const std::string sql = "SELECT COUNT(*) FROM users WHERE username = '" + username + "';";
 
