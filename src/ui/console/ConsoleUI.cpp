@@ -1,5 +1,7 @@
 #include "ui/console/ConsoleUI.h"
 
+#include "utils/StringUtils.h"
+
 #include <algorithm>
 #include <cctype>
 #include <iostream>
@@ -338,7 +340,9 @@ bool ConsoleUI::validatePassword(const std::string& password) const
 
 bool ConsoleUI::validateCellName(const std::string& cellName) const
 {
-    if (!m_cellService.isCellNameValid(cellName))
+    std::string trimmedName = StringUtils::trim(cellName);
+
+    if (!m_cellService.isCellNameValid(trimmedName))
     {
         std::cout << "Cell name must be between " << CellService::MIN_CELL_NAME_LENGTH << " and "
             << CellService::MAX_CELL_NAME_LENGTH << " characters.\n" << std::endl;
@@ -350,7 +354,9 @@ bool ConsoleUI::validateCellName(const std::string& cellName) const
 
 bool ConsoleUI::validateCellDescription(const std::string& cellDescription) const
 {
-    if (!m_cellService.isDescriptionValid(cellDescription))
+        std::string trimmedDesc = StringUtils::trim(cellDescription);
+
+    if (!m_cellService.isDescriptionValid(trimmedDesc))
     {
         std::cout << "Cell description must be between " << CellService::MIN_DESCRIPTION_LENGTH << " and "
             << CellService::MAX_DESCRIPTION_LENGTH << " characters.\n" << std::endl;

@@ -17,7 +17,6 @@ bool CellService::createCell(const std::string& cellName, uint64_t ownerId, cons
         throw std::invalid_argument("Cell name must be between " +
                                     std::to_string(MIN_CELL_NAME_LENGTH) + " and " +
                                     std::to_string(MAX_CELL_NAME_LENGTH) + " characters.");
-        return false;
     }
 
     if (!isDescriptionValid(trimmedCellDescription))
@@ -25,7 +24,6 @@ bool CellService::createCell(const std::string& cellName, uint64_t ownerId, cons
         throw std::invalid_argument("Cell description must be between " +
                                     std::to_string(MIN_DESCRIPTION_LENGTH) + " and " +
                                     std::to_string(MAX_DESCRIPTION_LENGTH) + " characters.");
-        return false;
     }
 
     return m_cellRepository
