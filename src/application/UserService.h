@@ -29,9 +29,5 @@ class UserService
         std::vector<User> getUsers() const;
 
     private:
-        std::string normalizeText(const std::string& text) const;
-        std::string trim(const std::string& str) const;
-        std::string toLower(const std::string& str) const;
-
         UserRepository& m_userRepository;
 };

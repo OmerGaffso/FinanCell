@@ -19,6 +19,7 @@ add_executable(FinanCell
     src/storage/sqlite/SQLiteUserRepository.cpp
     src/application/CellService.cpp
     src/application/TransactionService.cpp
+    src/utils/StringUtils.cpp
 )
 
 target_include_directories(FinanCell
