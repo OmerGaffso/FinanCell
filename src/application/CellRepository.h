@@ -15,4 +15,5 @@ public:
     virtual std::optional<FinancialCell> findCellById(std::uint64_t cellId) const = 0;
     virtual std::vector<FinancialCell> findCellsByOwnerId(
         std::uint64_t ownerId) const = 0;
+    virtual std::vector<FinancialCell> findAllCells() const = 0;
 };

@@ -78,3 +78,20 @@ std::vector<FinancialCell> SQLiteCellRepository::findCellsByOwnerId(
 
     return cells;
 }
+
+std::vector<FinancialCell> SQLiteCellRepository::findAllCells() const
+{
+    constexpr char sql[] =
+        "SELECT id, name, description, currency, owner_user_id "
+        "FROM cells ORDER BY id;";
+
+    SQLiteStatement statement(m_database, sql);
+
+    std::vector<FinancialCell> cells;
+    while (statement.next())
+    {
+        cells.push_back(readCell(statement));
+    }
+
+    return cells;
+}

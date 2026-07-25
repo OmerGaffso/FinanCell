@@ -14,6 +14,7 @@ public:
         std::uint64_t cellId) const override;
     std::vector<FinancialCell> findCellsByOwnerId(
         std::uint64_t ownerId) const override;
+    std::vector<FinancialCell> findAllCells() const override;
 
 private:
     SQLiteDatabase& m_database;

@@ -3,6 +3,7 @@
 #include "domain/FinancialCell.h"
 #include "domain/CellRole.h"
 #include "CellRepository.h"
+#include <vector>
 
 class CellService
 {
@@ -15,6 +16,9 @@ public:
 
     bool createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription);
     bool addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role);
+
+    bool cellExists(uint64_t cellId) const;
+    std::vector<FinancialCell> getCells() const;
 
 private:
     bool isCellNameValid(const std::string& cellName) const;

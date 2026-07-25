@@ -44,6 +44,16 @@ bool CellService::addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64
     return true;
 }
 
+bool CellService::cellExists(uint64_t cellId) const
+{
+    return m_cellRepository.findCellById(cellId).has_value();
+}
+
+std::vector<FinancialCell> CellService::getCells() const
+{
+    return m_cellRepository.findAllCells();
+}
+
 bool CellService::isCellNameValid(const std::string& cellName) const
 {
     const std::size_t length = cellName.length();
