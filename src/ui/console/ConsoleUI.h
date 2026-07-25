@@ -28,6 +28,11 @@ private:
     bool validateDisplayName(const std::string& displayName) const;
     bool validatePassword(const std::string& password) const;
 
+    bool validateCellName(const std::string& cellName) const;
+    bool validateCellDescription(const std::string& cellDescription) const;
+
+    void createCell();
+
     UserService& m_userService;
     CellService& m_cellService;
     std::uint64_t m_currentUserId = 0; // Track the current user ID

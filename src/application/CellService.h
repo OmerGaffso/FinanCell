@@ -20,8 +20,9 @@ public:
     bool cellExists(uint64_t cellId) const;
     std::vector<FinancialCell> getCells() const;
 
-private:
     bool isCellNameValid(const std::string& cellName) const;
     bool isDescriptionValid(const std::string& description) const;
+
+private:
     CellRepository& m_cellRepository;
 };

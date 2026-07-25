@@ -56,10 +56,13 @@ void ConsoleUI::runApp()
                     m_currentUserId = 0; // Reset current user ID on logout
                     break;
                 case 1:
-                    std::cout << "Create Cell functionality is not implemented yet.\n" << std::endl;
+                    createCell();
                     break;
                 case 2:
                     printCells();
+                    break;
+                case 3:
+                    printUsers();
                     break;
                 default:
                     std::cout << "Please select a valid menu option.\n" << std::endl;
@@ -108,6 +111,46 @@ void ConsoleUI::createAccount()
     else
     {
         std::cout << "Could not create the account.\n" << std::endl;
+    }
+}
+
+void ConsoleUI::createCell()
+{
+    if (m_currentUserId == 0)
+    {
+        std::cout << "No user connected. Cannot perform this action.\n" << std::endl;
+        return;
+    }
+
+    std::string cellName;
+    std::string cellDescription;
+
+    std::cout << "Creating new cell:\n";
+    std::cout << "Cell Name: ";
+    std::getline(std::cin, cellName);
+
+    if (!validateCellName(cellName))
+    {
+        std::cout << "Invalide cell name.\n" << std::endl;
+        return;
+    }
+
+    std::cout << "Cell Description: ";
+    std::getline(std::cin, cellDescription);
+
+    if (!validateCellDescription(cellDescription))
+    {
+        std::cout << "Invalide cell description.\n" << std::endl;
+        return;
+    }
+    
+    if (m_cellService.createCell(cellName, m_currentUserId, cellDescription))
+    {
+        std::cout << "Cell " << cellName << " created successfuly!" << std::endl;
+    }
+    else
+    {
+        std::cout << "Could not create the cell.\n" << std::endl;
     }
 }
 
@@ -200,6 +243,7 @@ void ConsoleUI::displayUserActionMenu() const
     std::cout << "==============" << std::endl;
     std::cout << "1. Create Cell" << std::endl;
     std::cout << "2. View Cells" << std::endl;
+    std::cout << "3. Print Users" << std::endl;
     std::cout << "0. Logout" << std::endl;
     std::cout << "==============" << std::endl;
 }
@@ -289,5 +333,29 @@ bool ConsoleUI::validatePassword(const std::string& password) const
         std::cout << "Password cannot contain spaces.\n" << std::endl;
         return false;
     }
+    return true;
+}
+
+bool ConsoleUI::validateCellName(const std::string& cellName) const
+{
+    if (!m_cellService.isCellNameValid(cellName))
+    {
+        std::cout << "Cell name must be between " << CellService::MIN_CELL_NAME_LENGTH << " and "
+            << CellService::MAX_CELL_NAME_LENGTH << " characters.\n" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool ConsoleUI::validateCellDescription(const std::string& cellDescription) const
+{
+    if (!m_cellService.isDescriptionValid(cellDescription))
+    {
+        std::cout << "Cell description must be between " << CellService::MIN_DESCRIPTION_LENGTH << " and "
+            << CellService::MAX_DESCRIPTION_LENGTH << " characters.\n" << std::endl;
+        return false;
+    }
+
     return true;
 }

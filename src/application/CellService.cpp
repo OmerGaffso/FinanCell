@@ -40,7 +40,7 @@ bool CellService::createCell(const std::string& cellName, uint64_t ownerId, cons
 
 bool CellService::addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role)
 {
-    
+    // Need to add Cell member table of connections by user id and cell id.
     return true;
 }
 
