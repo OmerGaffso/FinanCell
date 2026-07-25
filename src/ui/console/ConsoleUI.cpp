@@ -59,7 +59,7 @@ void ConsoleUI::runApp()
                     std::cout << "Create Cell functionality is not implemented yet.\n" << std::endl;
                     break;
                 case 2:
-                    std::cout << "View Cells functionality is not implemented yet.\n" << std::endl;
+                    printCells();
                     break;
                 default:
                     std::cout << "Please select a valid menu option.\n" << std::endl;
@@ -149,6 +149,31 @@ void ConsoleUI::printUsers() const
             std::cout << "ID: " << user.getUserId()
                       << ", Username: " << user.getUsername()
                       << ", Display Name: " << user.getDisplayName()
+                      << '\n';
+        }
+    }
+
+    std::cout << std::endl;
+}
+
+void ConsoleUI::printCells() const
+{
+    std::cout << "\nCurrent cells:" << std::endl;
+
+    const std::vector<FinancialCell> cells = m_cellService.getCells();
+    if (cells.empty())
+    {
+        std::cout << "No cells have been created.\n";
+    }
+    else
+    {
+        for (const FinancialCell& cell : cells)
+        {
+            std::cout << "ID: " << cell.getCellId()
+                      << ", Name: " << cell.getCellName()
+                      << ", Description: " << cell.getCellDescription()
+                      << ", Currency: " << cell.getUsesCurrency()
+                      << ", Owner ID: " << cell.getOwnerId()
                       << '\n';
         }
     }

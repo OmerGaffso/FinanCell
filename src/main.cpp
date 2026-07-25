@@ -4,6 +4,7 @@
 
 #include "ui/console/ConsoleUI.h"
 #include "storage/sqlite/Schema.h"
+#include "storage/sqlite/SQLiteCellRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 
@@ -19,8 +20,10 @@ int main()
 
         SQLiteUserRepository userRepository(database);
         UserService userService{userRepository};
+        SQLiteCellRepository cellRepository(database);
+        CellService cellService{cellRepository};
 
-        ConsoleUI ui{userService};
+        ConsoleUI ui{userService, cellService};
         ui.runApp();
     }
     catch (const std::exception& e)

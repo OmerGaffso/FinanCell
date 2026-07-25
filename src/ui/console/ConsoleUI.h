@@ -2,18 +2,23 @@
 
 #include <cstdint>
 
+#include "application/CellService.h"
 #include "application/UserService.h"
 
 class ConsoleUI
 {
 public:
-    explicit ConsoleUI(UserService& userService) : m_userService(userService) {}
+    ConsoleUI(UserService& userService, CellService& cellService)
+        : m_userService(userService), m_cellService(cellService)
+    {
+    }
     void runApp();
 
 private:
     void createAccount();
     void login();
     void printUsers() const;
+    void printCells() const;
     void displayMainMenu() const;
     void displayUserActionMenu() const;
     bool readChoice(int& choice) const;
@@ -24,5 +29,6 @@ private:
     bool validatePassword(const std::string& password) const;
 
     UserService& m_userService;
+    CellService& m_cellService;
     std::uint64_t m_currentUserId = 0; // Track the current user ID
 };
