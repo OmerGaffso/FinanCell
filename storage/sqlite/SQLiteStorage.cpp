@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <stdexcept>
 #include <iostream>
 #include "sqlite3.h"
@@ -91,7 +92,8 @@ User* SQLiteStorage::findUserByUsername(const std::string& username)
     User* user = nullptr;
     if (sqlite3_step(stmt) == SQLITE_ROW)
     {
-        int id = sqlite3_column_int(stmt, 0);
+        const std::uint64_t id =
+            static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0));
         const char* dbUsername = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         const char* dbDisplayName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         const char* dbPasswordHash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
@@ -115,7 +117,8 @@ void SQLiteStorage::printUsers() const
 
     while (sqlite3_step(stmt) == SQLITE_ROW)
     {
-        int id = sqlite3_column_int(stmt, 0);
+        const std::uint64_t id =
+            static_cast<std::uint64_t>(sqlite3_column_int64(stmt, 0));
         const char* dbUsername = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         const char* dbDisplayName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
 

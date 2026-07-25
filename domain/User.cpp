@@ -3,14 +3,13 @@
 User::User(const std::string& username, const std::string& displayName, const std::string& password)
     :m_username(username), m_displayName(displayName), m_password(password)
 {
-    static uint16_t nextUserID = 1; // Static variable to keep track of the next user ID
+    static std::uint64_t nextUserID = 1; // Static variable to keep track of the next user ID
     m_userID = nextUserID++; // Assign the current value and then increment for the
 }
 
-User::User(int userId, const std::string& username, const std::string& displayName, const std::string& password)
-    : m_username(username), m_displayName(displayName), m_password(password)
+User::User(std::uint64_t userId, const std::string& username, const std::string& displayName, const std::string& password)
+    : m_username(username), m_displayName(displayName), m_userID(userId), m_password(password)
 {
-    m_userID = static_cast<uint16_t>(userId);
 }
 
 std::string User::getUsername() const
@@ -23,7 +22,7 @@ std::string User::getDisplayName() const
     return m_displayName;
 }
 
-uint16_t User::getUserID() const
+std::uint64_t User::getUserID() const
 {
     return m_userID;
 }

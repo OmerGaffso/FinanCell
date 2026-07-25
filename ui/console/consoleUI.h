@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "../../services/user/UserService.h"
 
 class consoleUI
@@ -22,5 +24,5 @@ private:
     bool validate_password(const std::string& password) const;
 
     UserService m_userService;
-    uint16_t m_currentUserID = 0; // Track the current user ID
+    std::uint64_t m_currentUserID = 0; // Track the current user ID
 };
