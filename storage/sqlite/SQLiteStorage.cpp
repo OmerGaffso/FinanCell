@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <iostream>
 #include "sqlite3.h"
 
 #include "SQLiteStorage.h"
@@ -54,6 +55,77 @@ bool SQLiteStorage::insertUser(const std::string& username, const std::string& d
         // Handle the error (e.g., log it) if needed
         return false;
     }
+}
+
+bool SQLiteStorage::isUserExists(const std::string& username)
+{
+    const std::string sql = "SELECT COUNT(*) FROM users WHERE username = '" + username + "';";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        throw std::runtime_error("Failed to prepare SQL statement: " + std::string(sqlite3_errmsg(m_db)));
+    }
+
+    bool exists = false;
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int count = sqlite3_column_int(stmt, 0);
+        exists = (count > 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return exists;
+}
+
+User* SQLiteStorage::findUserByUsername(const std::string& username)
+{
+    const std::string sql = "SELECT id, username, display_name, password_hash FROM users WHERE username = '" + username + "';";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        throw std::runtime_error("Failed to prepare SQL statement: " + std::string(sqlite3_errmsg(m_db)));
+    }
+
+    User* user = nullptr;
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int id = sqlite3_column_int(stmt, 0);
+        const char* dbUsername = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        const char* dbDisplayName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        const char* dbPasswordHash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+
+        user = new User(id, dbUsername ? dbUsername : "", dbDisplayName ? dbDisplayName : "", dbPasswordHash ? dbPasswordHash : "");
+    }
+
+    sqlite3_finalize(stmt);
+    return user;
+}
+
+void SQLiteStorage::printUsers() const
+{
+    const std::string sql = "SELECT id, username, display_name FROM users;";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    {
+        throw std::runtime_error("Failed to prepare SQL statement: " + std::string(sqlite3_errmsg(m_db)));
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int id = sqlite3_column_int(stmt, 0);
+        const char* dbUsername = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        const char* dbDisplayName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+
+        std::cout << "ID: " << id 
+                  << ", Username: " << (dbUsername ? dbUsername : "") 
+                  << ", Display Name: " << (dbDisplayName ? dbDisplayName : "") 
+                  << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
 }
 
 void SQLiteStorage::executeSQL(const std::string& sql)

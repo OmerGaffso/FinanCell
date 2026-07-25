@@ -2,6 +2,7 @@
 
 #include <string>
 #include "sqlite3.h"
+#include "../../domain/User.h"
 
 struct sqlite3; // Forward declaration of sqlite3 struct
 
@@ -17,6 +18,10 @@ class SQLiteStorage
 
         void initializeDatabase();
         bool insertUser(const std::string& username, const std::string& displayName, const std::string& passwordHash);
+        bool isUserExists(const std::string& username);
+        User* findUserByUsername(const std::string& username);
+
+        void printUsers() const;
 
     private:
         void executeSQL(const std::string& sql);

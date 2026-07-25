@@ -33,6 +33,5 @@ class UserService
         std::string trim(const std::string& str) const;
         std::string toLower(const std::string& str) const;
 
-        std::vector<User> m_users;
         SQLiteStorage& m_storage;
 };

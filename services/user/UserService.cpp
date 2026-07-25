@@ -46,13 +46,9 @@ bool UserService::userExists(const std::string& username) const
 {
     const std::string normalizedUsername = normalizeText(username);
 
-    for (const User& user : m_users)
-    {
-        if (user.getUsername() == normalizedUsername)
-        {
-            return true;
-        }
-    }
+    if (m_storage.isUserExists(normalizedUsername))
+        return true;
+
     return false;
 }
 
@@ -77,30 +73,17 @@ bool UserService::isPasswordLengthValid(const std::string& password) const
 const User* UserService::findUserByUsername(const std::string& username) const
 {
     const std::string normalizedUsername = normalizeText(username);
+    
+    if (!m_storage.isUserExists(normalizedUsername))
+        return nullptr;
 
-    for (const User& user : m_users)
-    {
-        if (user.getUsername() == normalizedUsername)
-        {
-            return &user;
-        }
-    }
-    return nullptr;
+    User* user = m_storage.findUserByUsername(normalizedUsername);
+    return user;
 }
 
 void UserService::printUsers() const
 {
-    if (m_users.empty())
-    {
-        std::cout << "No users have been created.\n";
-        return;
-    }
-
-    for (const User& user : m_users)
-    {
-        std::cout << "Username: " << user.getUsername() << 
-                    ", Display Name: " << user.getDisplayName() << std::endl;
-    }
+    m_storage.printUsers();
 }
 
 std::string UserService::normalizeText(const std::string& text) const
