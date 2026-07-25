@@ -1,10 +1,9 @@
 #pragma once
 
 #include <string>
-#include "sqlite3.h"
-#include "../../domain/User.h"
+#include <sqlite3.h>
 
-struct sqlite3; // Forward declaration of sqlite3 struct
+#include "domain/User.h"
 
 class SQLiteStorage
 {

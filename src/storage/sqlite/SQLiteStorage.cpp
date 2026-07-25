@@ -1,10 +1,10 @@
 #include <cstdint>
 #include <stdexcept>
 #include <iostream>
-#include "sqlite3.h"
+#include <sqlite3.h>
 
-#include "SQLiteStorage.h"
-#include "../../db/schema.h"
+#include "storage/sqlite/SQLiteStorage.h"
+#include "storage/sqlite/Schema.h"
 
 SQLiteStorage::SQLiteStorage(const std::string& dbFilePath)
     : m_dbFilePath(dbFilePath), m_db(nullptr)

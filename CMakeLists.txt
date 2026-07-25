@@ -11,17 +11,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(SQLite3 REQUIRED)
 
 add_executable(FinanCell 
-main.cpp
-ui/console/consoleUI.cpp
-domain/User.cpp
-services/user/UserService.cpp
-storage/sqlite/SQLiteStorage.h
-storage/sqlite/SQLiteStorage.cpp
+    src/main.cpp
+    src/ui/console/consoleUI.cpp
+    src/domain/User.cpp
+    src/application/UserService.cpp
+    src/storage/sqlite/SQLiteStorage.cpp
 )
 
 target_include_directories(FinanCell
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_link_libraries(FinanCell

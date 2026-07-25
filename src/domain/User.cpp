@@ -1,4 +1,4 @@
-#include "User.h"
+#include "domain/User.h"
 
 User::User(const std::string& username, const std::string& displayName, const std::string& password)
     :m_username(username), m_displayName(displayName), m_password(password)

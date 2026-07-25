@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <string>
 #include <vector>
-#include "../../domain/User.h"
-#include "../../storage/sqlite/SQLiteStorage.h"
+#include "domain/User.h"
+#include "storage/sqlite/SQLiteStorage.h"
 
 class UserService 
 {
