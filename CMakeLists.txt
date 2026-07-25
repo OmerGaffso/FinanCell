@@ -14,6 +14,7 @@ add_executable(FinanCell
     src/main.cpp
     src/ui/console/ConsoleUI.cpp
     src/domain/User.cpp
+    src/domain/FinancialCell.cpp
     src/application/UserService.cpp
     src/storage/sqlite/SQLiteUserRepository.cpp
 )
