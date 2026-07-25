@@ -17,7 +17,7 @@ private:
     void displayMainMenu() const;
     void displayUserActionMenu() const;
     bool readChoice(int& choice) const;
-    bool checkSpaces(const std::string& text) const; // used to validate that passwords and usernames do not contain spaces
+    bool containsWhitespace(const std::string& text) const;
 
     bool validateUsername(const std::string& username) const;
     bool validateDisplayName(const std::string& displayName) const;

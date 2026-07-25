@@ -1,4 +1,7 @@
 #include "ui/console/ConsoleUI.h"
+
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <limits>
 
@@ -199,10 +202,15 @@ bool ConsoleUI::readChoice(int& choice) const
     return true;
 }
 
-bool ConsoleUI::checkSpaces(const std::string& text) const
+bool ConsoleUI::containsWhitespace(const std::string& text) const
 {
-    return  (text.find(' ') == std::string::npos) || (text.find('\t') == std::string::npos) || 
-            (text.find('\n') == std::string::npos);
+    return std::any_of(
+        text.begin(),
+        text.end(),
+        [](unsigned char character)
+        {
+            return std::isspace(character);
+        });
 }
 
 bool ConsoleUI::validateUsername(const std::string& username) const
@@ -220,7 +228,7 @@ bool ConsoleUI::validateUsername(const std::string& username) const
         std::cout << "User already exists.\n" << std::endl;
         return false;
     }
-    if (!checkSpaces(username))
+    if (containsWhitespace(username))
     {
         std::cout << "Username cannot contain spaces.\n" << std::endl;
         return false;
@@ -251,7 +259,7 @@ bool ConsoleUI::validatePassword(const std::string& password) const
                   << " characters.\n" << std::endl;
         return false;
     }
-    if (!checkSpaces(password))
+    if (containsWhitespace(password))
     {
         std::cout << "Password cannot contain spaces.\n" << std::endl;
         return false;
