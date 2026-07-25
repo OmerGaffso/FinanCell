@@ -119,7 +119,7 @@ void ConsoleUI::login()
     std::cout << "Password: ";
     std::getline(std::cin, password);
 
-    if (const User* user = m_userService.authenticateUser(username, password))
+    if (const std::optional<User> user = m_userService.authenticateUser(username, password))
     {
         m_currentUserId = user->getUserId();
         std::cout << "Login successful. Welcome, " << user->getDisplayName() << "!\n" << std::endl;
@@ -133,7 +133,23 @@ void ConsoleUI::login()
 void ConsoleUI::printUsers() const
 {
     std::cout << "\nCurrent users:" << std::endl;
-    m_userService.printUsers();
+
+    const std::vector<User> users = m_userService.getUsers();
+    if (users.empty())
+    {
+        std::cout << "No users have been created.\n";
+    }
+    else
+    {
+        for (const User& user : users)
+        {
+            std::cout << "ID: " << user.getUserId()
+                      << ", Username: " << user.getUsername()
+                      << ", Display Name: " << user.getDisplayName()
+                      << '\n';
+        }
+    }
+
     std::cout << std::endl;
 }
 

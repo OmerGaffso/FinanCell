@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
+
+#include "application/UserRepository.h"
 #include "domain/User.h"
-#include "storage/sqlite/SQLiteStorage.h"
 
 class UserService 
 {
@@ -16,22 +18,20 @@ class UserService
         static constexpr std::size_t MIN_PASSWORD_LENGTH = 6;
         static constexpr std::size_t MAX_PASSWORD_LENGTH = 18;
 
-        UserService(SQLiteStorage& storage);
+        explicit UserService(UserRepository& userRepository);
         bool createUser(std::string& username, std::string& displayName, std::string& password);
         bool userExists(const std::string& username) const;
         bool isUsernameLengthValid(const std::string& username) const;
         bool isDisplayNameLengthValid(const std::string& displayName) const;
         bool isPasswordLengthValid(const std::string& password) const;
 
-        const User* authenticateUser(const std::string& username, const std::string& password);
-        const User* findUserByUsername(const std::string& username) const;
-
-        void printUsers() const;
+        std::optional<User> authenticateUser(const std::string& username, const std::string& password) const;
+        std::vector<User> getUsers() const;
 
     private:
         std::string normalizeText(const std::string& text) const;
         std::string trim(const std::string& str) const;
         std::string toLower(const std::string& str) const;
 
-        SQLiteStorage& m_storage;
+        UserRepository& m_userRepository;
 };

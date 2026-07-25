@@ -15,7 +15,7 @@ add_executable(FinanCell
     src/ui/console/ConsoleUI.cpp
     src/domain/User.cpp
     src/application/UserService.cpp
-    src/storage/sqlite/SQLiteStorage.cpp
+    src/storage/sqlite/SQLiteUserRepository.cpp
 )
 
 target_include_directories(FinanCell

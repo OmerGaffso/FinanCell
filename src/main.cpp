@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "ui/console/ConsoleUI.h"
-#include "storage/sqlite/SQLiteStorage.h"
+#include "storage/sqlite/SQLiteUserRepository.h"
 
 int main()
 {
@@ -11,10 +11,10 @@ int main()
     {
         std::filesystem::create_directories("data");
 
-        SQLiteStorage storage("data/financell.db");
-        storage.initializeDatabase();
+        SQLiteUserRepository userRepository("data/financell.db");
+        userRepository.initializeDatabase();
 
-        UserService userService{storage};
+        UserService userService{userRepository};
 
         ConsoleUI ui{userService};
         ui.runApp();

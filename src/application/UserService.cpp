@@ -1,8 +1,8 @@
 #include "application/UserService.h"
-#include <iostream>
 #include <string>
 
-UserService::UserService(SQLiteStorage& storage) : m_storage(storage) 
+UserService::UserService(UserRepository& userRepository)
+    : m_userRepository(userRepository)
 {
 }
 
@@ -20,23 +20,19 @@ bool UserService::createUser(std::string& username, std::string& displayName, st
         return false;
     }
 
-    m_storage.insertUser(username, displayName, password);
-    // m_users.emplace_back(username, displayName, password);
-    return true;
+    return m_userRepository.insertUser(username, displayName, password);
 }
 
-const User* UserService::authenticateUser(const std::string& username, const std::string& password)
+std::optional<User> UserService::authenticateUser(
+    const std::string& username,
+    const std::string& password) const
 {
-    User* user = const_cast<User*>(findUserByUsername(username));
+    const std::string normalizedUsername = normalizeText(username);
+    std::optional<User> user = m_userRepository.findUserByUsername(normalizedUsername);
 
-    if (user == nullptr)
+    if (!user || !user->checkPassword(password))
     {
-        return nullptr;
-    }
-
-    if (!user->checkPassword(password))
-    {
-        return nullptr;
+        return std::nullopt;
     }
 
     return user;
@@ -46,10 +42,7 @@ bool UserService::userExists(const std::string& username) const
 {
     const std::string normalizedUsername = normalizeText(username);
 
-    if (m_storage.userExists(normalizedUsername))
-        return true;
-
-    return false;
+    return m_userRepository.userExists(normalizedUsername);
 }
 
 bool UserService::isUsernameLengthValid(const std::string& username) const
@@ -70,20 +63,9 @@ bool UserService::isPasswordLengthValid(const std::string& password) const
     return length >= MIN_PASSWORD_LENGTH && length <= MAX_PASSWORD_LENGTH;
 }
 
-const User* UserService::findUserByUsername(const std::string& username) const
+std::vector<User> UserService::getUsers() const
 {
-    const std::string normalizedUsername = normalizeText(username);
-    
-    if (!m_storage.userExists(normalizedUsername))
-        return nullptr;
-
-    User* user = m_storage.findUserByUsername(normalizedUsername);
-    return user;
-}
-
-void UserService::printUsers() const
-{
-    m_storage.printUsers();
+    return m_userRepository.findAllUsers();
 }
 
 std::string UserService::normalizeText(const std::string& text) const

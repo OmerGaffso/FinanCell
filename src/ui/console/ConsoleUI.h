@@ -23,6 +23,6 @@ private:
     bool validateDisplayName(const std::string& displayName) const;
     bool validatePassword(const std::string& password) const;
 
-    UserService m_userService;
+    UserService& m_userService;
     std::uint64_t m_currentUserId = 0; // Track the current user ID
 };
