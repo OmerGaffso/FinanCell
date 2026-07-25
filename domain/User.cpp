@@ -7,6 +7,12 @@ User::User(const std::string& username, const std::string& displayName, const st
     m_userID = nextUserID++; // Assign the current value and then increment for the
 }
 
+User::User(int userId, const std::string& username, const std::string& displayName, const std::string& password)
+    : m_username(username), m_displayName(displayName), m_password(password)
+{
+    m_userID = static_cast<uint16_t>(userId);
+}
+
 std::string User::getUsername() const
 {
     return m_username;

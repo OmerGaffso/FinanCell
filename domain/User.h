@@ -1,11 +1,13 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 class User 
 {
     public:
         User(const std::string& username, const std::string& displayName, const std::string& password);
+        User(int userId, const std::string& username, const std::string& displayName, const std::string& password);
         std::string getUsername() const;
         std::string getDisplayName() const;
         uint16_t getUserID() const;
