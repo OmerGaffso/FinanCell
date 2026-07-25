@@ -1,20 +1,14 @@
 #pragma once
 
 #include <string>
-#include <sqlite3.h>
 
 #include "application/UserRepository.h"
+#include "storage/sqlite/SQLiteDatabase.h"
 
 class SQLiteUserRepository final : public UserRepository
 {
 public:
-    explicit SQLiteUserRepository(const std::string& dbFilePath);
-    ~SQLiteUserRepository() override;
-
-    SQLiteUserRepository(const SQLiteUserRepository&) = delete;
-    SQLiteUserRepository& operator=(const SQLiteUserRepository&) = delete;
-
-    void initializeDatabase();
+    explicit SQLiteUserRepository(SQLiteDatabase& database);
     bool insertUser(
         const std::string& username,
         const std::string& displayName,
@@ -24,8 +18,5 @@ public:
     std::vector<User> findAllUsers() const override;
 
 private:
-    void executeSQL(const std::string& sql);
-
-    std::string m_dbFilePath;
-    sqlite3* m_db{nullptr};
+    SQLiteDatabase& m_database;
 };

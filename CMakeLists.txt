@@ -16,7 +16,10 @@ add_executable(FinanCell
     src/domain/User.cpp
     src/domain/FinancialCell.cpp
     src/application/UserService.cpp
+    src/storage/sqlite/SQLiteDatabase.cpp
+    src/storage/sqlite/SQLiteStatement.cpp
     src/storage/sqlite/SQLiteUserRepository.cpp
+    src/storage/sqlite/SQLiteCellRepository.cpp
     src/application/CellService.cpp
     src/application/TransactionService.cpp
     src/utils/StringUtils.cpp

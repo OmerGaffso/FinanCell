@@ -1,0 +1,23 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+
+struct sqlite3;
+
+class SQLiteDatabase
+{
+public:
+    explicit SQLiteDatabase(const std::string& filePath);
+    ~SQLiteDatabase();
+
+    SQLiteDatabase(const SQLiteDatabase&) = delete;
+    SQLiteDatabase& operator=(const SQLiteDatabase&) = delete;
+
+    void execute(const std::string& sql);
+    std::uint64_t lastInsertId() const;
+    sqlite3* handle() const;
+
+private:
+    sqlite3* m_database{nullptr};
+};

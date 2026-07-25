@@ -28,7 +28,14 @@ bool CellService::createCell(const std::string& cellName, uint64_t ownerId, cons
         return false;
     }
 
-    return m_cellRepository.insertCell(FinancialCell(0, trimmedCellName, trimmedCellDescription, "ILS", ownerId));
+    return m_cellRepository
+        .insertCell(FinancialCell(
+            0,
+            trimmedCellName,
+            trimmedCellDescription,
+            "ILS",
+            ownerId))
+        .has_value();
 }
 
 bool CellService::addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role)

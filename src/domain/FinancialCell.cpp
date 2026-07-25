@@ -1,14 +1,8 @@
 #include "FinancialCell.h"
 
 FinancialCell::FinancialCell(uint64_t id, std::string name, std::string description, std::string usesCurrency, uint64_t ownerId)
-    : m_cellId(id), m_cellName(name), m_cellDescription(description), m_usesCurrency(usesCurrency), m_ownerId(ownerId)
+    : m_cellId(id), m_ownerId(ownerId), m_cellName(name), m_cellDescription(description), m_usesCurrency(usesCurrency)
 {
-
-}
-
-FinancialCell::~FinancialCell()
-{
-
 }
 
 uint64_t FinancialCell::getCellId() const
