@@ -1,18 +1,60 @@
+#include <stdexcept>
 #include "CellService.h"
+#include "utils/StringUtils.h"
 
-bool CellService::createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription, const std::string& usesCurrency)
+CellService::CellService(CellRepository& cellRepository)
+    : m_cellRepository(cellRepository)
 {
-    // Implement the logic to create a new financial cell
-    // This could involve validating inputs, checking if the owner exists, etc.
-    // For now, we'll just return true to indicate success.
-    return true;
+}
+
+bool CellService::createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription)
+{
+    std::string trimmedCellName = StringUtils::trim(cellName);
+    std::string trimmedCellDescription = StringUtils::trim(cellDescription);
+
+    if (!isCellNameValid(trimmedCellName))
+    {
+        throw std::invalid_argument("Cell name must be between " +
+                                    std::to_string(MIN_CELL_NAME_LENGTH) + " and " +
+                                    std::to_string(MAX_CELL_NAME_LENGTH) + " characters.");
+        return false;
+    }
+
+    if (!isDescriptionValid(trimmedCellDescription))
+    {
+        throw std::invalid_argument("Cell description must be between " +
+                                    std::to_string(MIN_DESCRIPTION_LENGTH) + " and " +
+                                    std::to_string(MAX_DESCRIPTION_LENGTH) + " characters.");
+        return false;
+    }
+
+    return m_cellRepository.insertCell(FinancialCell(0, trimmedCellName, trimmedCellDescription, "ILS", ownerId));
 }
 
 bool CellService::addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role)
 {
-    // Implement the logic to add a member to an existing financial cell
-    // This could involve checking if the acting user has permission to add members,
-    // validating the new user's existence, etc.
-    // For now, we'll just return true to indicate success.
+    
+    return true;
+}
+
+bool CellService::isCellNameValid(const std::string& cellName) const
+{
+    const std::size_t length = cellName.length();
+    if (length < MIN_CELL_NAME_LENGTH || length > MAX_CELL_NAME_LENGTH)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool CellService::isDescriptionValid(const std::string& description) const
+{
+    const std::size_t length = description.length();
+    if (length < MIN_DESCRIPTION_LENGTH || length > MAX_DESCRIPTION_LENGTH)
+    {
+        return false;
+    }
+
     return true;
 }
