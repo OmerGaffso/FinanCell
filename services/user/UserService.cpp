@@ -2,7 +2,9 @@
 #include <iostream>
 #include <string>
 
-UserService::UserService() {};
+UserService::UserService(SQLiteStorage& storage) : m_storage(storage) 
+{
+}
 
 bool UserService::createUser(std::string& username, std::string& displayName, std::string& password)
 {
@@ -18,7 +20,8 @@ bool UserService::createUser(std::string& username, std::string& displayName, st
         return false;
     }
 
-    m_users.emplace_back(username, displayName, password);
+    m_storage.insertUser(username, displayName, password);
+    // m_users.emplace_back(username, displayName, password);
     return true;
 }
 

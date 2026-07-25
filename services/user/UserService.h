@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "../../domain/User.h"
+#include "../../storage/sqlite/SQLiteStorage.h"
 
 class UserService 
 {
@@ -15,7 +16,7 @@ class UserService
         static constexpr std::size_t MIN_PASSWORD_LENGTH = 6;
         static constexpr std::size_t MAX_PASSWORD_LENGTH = 18;
 
-        UserService();
+        UserService(SQLiteStorage& storage);
         bool createUser(std::string& username, std::string& displayName, std::string& password);
         bool userExists(const std::string& username) const;
         bool isUsernameLengthValid(const std::string& username) const;
@@ -33,4 +34,5 @@ class UserService
         std::string toLower(const std::string& str) const;
 
         std::vector<User> m_users;
+        SQLiteStorage& m_storage;
 };

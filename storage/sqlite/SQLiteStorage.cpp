@@ -39,6 +39,23 @@ void SQLiteStorage::initializeDatabase()
     executeSQL(Schema::CREATE_USERS_TABLE);
 }
 
+bool SQLiteStorage::insertUser(const std::string& username, const std::string& displayName, const std::string& passwordHash)
+{
+    const std::string sql = "INSERT INTO users (username, display_name, password_hash) VALUES ('" +
+                            username + "', '" + displayName + "', '" + passwordHash + "');";
+
+    try
+    {
+        executeSQL(sql);
+        return true;
+    }
+    catch (const std::runtime_error& e)
+    {
+        // Handle the error (e.g., log it) if needed
+        return false;
+    }
+}
+
 void SQLiteStorage::executeSQL(const std::string& sql)
 {
     char* errMsg = nullptr;

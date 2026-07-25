@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "sqlite3.h"
 
 struct sqlite3; // Forward declaration of sqlite3 struct
 
@@ -15,6 +16,7 @@ class SQLiteStorage
         SQLiteStorage& operator=(const SQLiteStorage&) = delete;
 
         void initializeDatabase();
+        bool insertUser(const std::string& username, const std::string& displayName, const std::string& passwordHash);
 
     private:
         void executeSQL(const std::string& sql);

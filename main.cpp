@@ -14,7 +14,7 @@ int main()
         SQLiteStorage storage("data/financell.db");
         storage.initializeDatabase();
 
-        UserService userService;
+        UserService userService{storage};
 
         consoleUI ui{userService};
         ui.run_app();
