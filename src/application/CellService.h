@@ -26,9 +26,13 @@ enum class CellOperationResult
 class CellService
 {
 public:
+    /** @brief Minimum accepted cell-name length. */
     static constexpr std::size_t MIN_CELL_NAME_LENGTH = 3;
+    /** @brief Maximum accepted cell-name length. */
     static constexpr std::size_t MAX_CELL_NAME_LENGTH = 50;
+    /** @brief Minimum accepted description length. */
     static constexpr std::size_t MIN_DESCRIPTION_LENGTH = 0;
+    /** @brief Maximum accepted description length. */
     static constexpr std::size_t MAX_DESCRIPTION_LENGTH = 200;
     /** @brief Creates the service. @param cellRepository Cell persistence. @param userRepository User persistence. */
     CellService(CellRepository& cellRepository, UserRepository& userRepository);

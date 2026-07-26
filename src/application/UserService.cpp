@@ -1,8 +1,20 @@
 #include "application/UserService.h"
 
+#include <algorithm>
+#include <cctype>
 #include <string>
 
 #include "utils/StringUtils.h"
+
+namespace
+{
+bool containsWhitespace(const std::string& text)
+{
+    return std::any_of(
+        text.begin(), text.end(),
+        [](unsigned char character) { return std::isspace(character); });
+}
+}
 
 UserService::UserService(UserRepository& userRepository, PasswordHasher& passwordHasher)
     : m_userRepository(userRepository), m_passwordHasher(passwordHasher)
@@ -13,11 +25,11 @@ bool UserService::createUser(std::string& username, std::string& displayName, st
 {
     username = StringUtils::normalize(username);
     displayName = StringUtils::trim(displayName);
-    password = StringUtils::trim(password);
 
     if (!isUsernameLengthValid(username) ||
         !isDisplayNameLengthValid(displayName) ||
         !isPasswordLengthValid(password) ||
+        containsWhitespace(username) || containsWhitespace(password) ||
         userExists(username))
     {
         return false;
@@ -86,7 +98,7 @@ bool UserService::isDisplayNameLengthValid(const std::string& displayName) const
 
 bool UserService::isPasswordLengthValid(const std::string& password) const
 {
-    const std::size_t length = StringUtils::trim(password).length();
+    const std::size_t length = password.length();
     return length >= MIN_PASSWORD_LENGTH && length <= MAX_PASSWORD_LENGTH;
 }
 

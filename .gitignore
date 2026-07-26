@@ -29,3 +29,6 @@ FinanCell
 data/*.db
 data/*.db-shm
 data/*.db-wal
+
+# Generated API documentation
+docs/html/

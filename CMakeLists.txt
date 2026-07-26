@@ -12,6 +12,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(SQLite3 REQUIRED)
 find_library(SODIUM_LIBRARY NAMES sodium libsodium.so.23 REQUIRED)
+find_package(Doxygen QUIET)
+
+if(DOXYGEN_FOUND)
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating API documentation"
+        VERBATIM
+    )
+endif()
 
 add_executable(FinanCell 
     src/main.cpp

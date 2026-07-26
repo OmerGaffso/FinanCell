@@ -13,11 +13,17 @@
 class UserService
 {
     public:
+        /** @brief Minimum accepted username length. */
         static constexpr std::size_t MIN_USERNAME_LENGTH = 3;
+        /** @brief Maximum accepted username length. */
         static constexpr std::size_t MAX_USERNAME_LENGTH = 30;
+        /** @brief Minimum accepted display-name length. */
         static constexpr std::size_t MIN_DISPLAY_NAME_LENGTH = 3;
+        /** @brief Maximum accepted display-name length. */
         static constexpr std::size_t MAX_DISPLAY_NAME_LENGTH = 50;
+        /** @brief Minimum accepted password length. */
         static constexpr std::size_t MIN_PASSWORD_LENGTH = 6;
+        /** @brief Maximum accepted password length. */
         static constexpr std::size_t MAX_PASSWORD_LENGTH = 18;
 
         /** @brief Creates the service. @param userRepository User persistence. @param passwordHasher Password hashing provider. */

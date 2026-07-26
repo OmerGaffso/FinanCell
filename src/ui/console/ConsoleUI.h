@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 #include "application/CellService.h"
 #include "application/TransactionService.h"
@@ -78,6 +79,8 @@ private:
     bool readAmount(std::int64_t& amountInMinorUnits) const;
     /** @brief Formats money. @param amountInMinorUnits Signed minor units. @return Formatted ILS amount. */
     std::string formatMoney(std::int64_t amountInMinorUnits) const;
+    /** @brief Returns the current user's role in the selected cell. @return Role, or empty when inaccessible. */
+    std::optional<CellRole> currentCellRole() const;
     /** @brief Checks for whitespace. @param text Input text. @return True when whitespace exists. */
     bool containsWhitespace(const std::string& text) const;
 

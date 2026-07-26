@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <termios.h>
 #include <unistd.h>
@@ -93,6 +94,15 @@ void ConsoleUI::runApp()
         }
         else
         {
+            const auto role = currentCellRole();
+            const bool canWriteTransactions = role && *role != CellRole::GUEST;
+            const bool isOwner = role && *role == CellRole::OWNER;
+            if (((choice >= 2 && choice <= 4) && !canWriteTransactions) ||
+                ((choice == 7 || choice == 8) && !isOwner))
+            {
+                std::cout << "That action is not available for your role.\n\n";
+                continue;
+            }
             switch (choice)
             {
                 case 1: printTransactions(); break;
@@ -140,6 +150,14 @@ void ConsoleUI::createAccount()
     if (!validatePassword(password))
     {
         std::cout << "Invalid password.\n" << std::endl;
+        return;
+    }
+
+    std::string confirmation;
+    if (!readPassword("Confirm password: ", confirmation)) return;
+    if (password != confirmation)
+    {
+        std::cout << "Passwords do not match.\n" << std::endl;
         return;
     }
 
@@ -372,11 +390,18 @@ void ConsoleUI::printTransactions()
         std::cout << "To date YYYY-MM-DD: ";
         std::getline(std::cin, toDate);
     }
+    if ((!fromDate.empty() || !toDate.empty()) &&
+        (!TransactionService::isDateValid(fromDate) ||
+         !TransactionService::isDateValid(toDate) || fromDate > toDate))
+    {
+        std::cout << "Enter a complete, valid date range in YYYY-MM-DD format.\n\n";
+        return;
+    }
     const auto transactions =
         m_transactionService.getTransactionsForCell(m_currentUserId, cellId, fromDate, toDate);
     if (!transactions)
     {
-        std::cout << "Cell not found or access denied.\n" << std::endl;
+        std::cout << "Invalid date range, cell not found, or access denied.\n" << std::endl;
         return;
     }
     if (transactions->empty())
@@ -418,6 +443,13 @@ void ConsoleUI::addTransaction()
     std::cout << "Date YYYY-MM-DD (blank for today): ";
     std::getline(std::cin, occurredAt);
 
+    if (!TransactionService::isCategoryValid(category) ||
+        !TransactionService::isDateValid(occurredAt))
+    {
+        std::cout << "Category or date is invalid. Use YYYY-MM-DD for the date.\n\n";
+        return;
+    }
+
     const auto transaction = m_transactionService.addTransaction(
         m_currentUserId, cellId, type, description, amount, occurredAt, category);
     std::cout << (transaction ? "Transaction added successfully.\n\n"
@@ -435,9 +467,23 @@ void ConsoleUI::editTransaction()
     std::getline(std::cin, description);
     std::int64_t amount;
     if (!readAmount(amount)) return;
+    std::string category;
+    std::string occurredAt;
+    std::cout << "New category (blank to keep current): ";
+    std::getline(std::cin, category);
+    std::cout << "New date YYYY-MM-DD (blank to keep current): ";
+    std::getline(std::cin, occurredAt);
+    if ((!StringUtils::trim(category).empty() &&
+         !TransactionService::isCategoryValid(category)) ||
+        !TransactionService::isDateValid(occurredAt))
+    {
+        std::cout << "Category or date is invalid. Use YYYY-MM-DD for the date.\n\n";
+        return;
+    }
 
     std::cout << (m_transactionService.editTransaction(
-                      m_currentUserId, transactionId, type, description, amount)
+                      m_currentUserId, m_currentCellId, transactionId, type,
+                      description, amount, occurredAt, category)
                       ? "Transaction updated successfully.\n\n"
                       : "Could not update transaction.\n\n");
 }
@@ -446,7 +492,16 @@ void ConsoleUI::deleteTransaction()
 {
     std::uint64_t transactionId;
     if (!readId("Transaction ID: ", transactionId)) return;
-    std::cout << (m_transactionService.deleteTransaction(m_currentUserId, transactionId)
+    std::string confirmation;
+    std::cout << "Type DELETE to permanently delete the transaction: ";
+    std::getline(std::cin, confirmation);
+    if (confirmation != "DELETE")
+    {
+        std::cout << "Deletion cancelled.\n\n";
+        return;
+    }
+    std::cout << (m_transactionService.deleteTransaction(
+                      m_currentUserId, m_currentCellId, transactionId)
                       ? "Transaction deleted successfully.\n\n"
                       : "Could not delete transaction.\n\n");
 }
@@ -481,22 +536,57 @@ void ConsoleUI::printCellBalance()
     std::getline(std::cin, month);
     if (!month.empty())
     {
+        if (month.size() != 7 || !TransactionService::isDateValid(month + "-01"))
+        {
+            std::cout << "Invalid month. Use YYYY-MM.\n\n";
+            return;
+        }
+        std::string monthEnd;
+        for (int day = 31; day >= 28; --day)
+        {
+            const std::string candidate = month + "-" + std::to_string(day);
+            if (TransactionService::isDateValid(candidate))
+            {
+                monthEnd = candidate;
+                break;
+            }
+        }
         const auto monthly = m_transactionService.getTransactionsForCell(
-            m_currentUserId, cellId, month + "-01", month + "-31");
+            m_currentUserId, cellId, month + "-01", monthEnd);
         std::int64_t monthlyIncome = 0;
         std::int64_t monthlyExpenses = 0;
+        std::map<std::string, std::pair<std::int64_t, std::int64_t>> byCategory;
         if (monthly)
         {
             for (const Transaction& transaction : *monthly)
             {
                 if (transaction.getType() == TransactionType::INCOME)
+                {
                     monthlyIncome += transaction.getAmountInMinorUnits();
-                else monthlyExpenses += transaction.getAmountInMinorUnits();
+                    byCategory[transaction.getCategory()].first +=
+                        transaction.getAmountInMinorUnits();
+                }
+                else
+                {
+                    monthlyExpenses += transaction.getAmountInMinorUnits();
+                    byCategory[transaction.getCategory()].second +=
+                        transaction.getAmountInMinorUnits();
+                }
             }
         }
         std::cout << "Monthly income: " << formatMoney(monthlyIncome)
                   << "\nMonthly expenses: " << formatMoney(monthlyExpenses)
                   << "\nMonthly net: " << formatMoney(monthlyIncome - monthlyExpenses) << '\n';
+        if (!byCategory.empty())
+        {
+            std::cout << "Category breakdown:\n";
+            for (const auto& [category, totals] : byCategory)
+            {
+                std::cout << "  " << category
+                          << ": income " << formatMoney(totals.first)
+                          << ", expenses " << formatMoney(totals.second) << '\n';
+            }
+        }
     }
     std::cout << std::endl;
 }
@@ -526,11 +616,19 @@ void ConsoleUI::displayUserActionMenu() const
 
 void ConsoleUI::displayCellActionMenu() const
 {
+    const auto role = currentCellRole();
     std::cout << "========== Cell " << m_currentCellId << " ==========\n"
-              << "1. View Transactions\n2. Add Transaction\n3. Edit Transaction\n"
-              << "4. Delete Transaction\n5. View Balance and Summary\n"
-              << "6. Manage Members\n7. Edit Cell\n8. Delete Cell\n9. Back\n"
-              << "============================\n";
+              << "1. View Transactions\n";
+    if (role && *role != CellRole::GUEST)
+    {
+        std::cout << "2. Add Transaction\n3. Edit Transaction\n4. Delete Transaction\n";
+    }
+    std::cout << "5. View Balance and Summary\n6. View/Manage Members\n";
+    if (role && *role == CellRole::OWNER)
+    {
+        std::cout << "7. Edit Cell\n8. Delete Cell\n";
+    }
+    std::cout << "9. Back\n============================\n";
 }
 
 void ConsoleUI::selectCell()
@@ -547,14 +645,32 @@ void ConsoleUI::selectCell()
 
 void ConsoleUI::manageMembers()
 {
-    std::cout << "1. View Members\n2. Add Member\n3. Change Role\n4. Remove Member\n";
+    const auto role = currentCellRole();
+    std::cout << "1. View Members\n";
+    if (role && *role == CellRole::OWNER)
+        std::cout << "2. Add Member\n3. Change Role\n4. Remove Member\n";
     int choice;
     if (!readChoice(choice)) return;
+    if (choice >= 2 && choice <= 4 && (!role || *role != CellRole::OWNER))
+    {
+        std::cout << "That action is not available for your role.\n\n";
+        return;
+    }
     if (choice == 1) printCellMembers();
     else if (choice == 2) addCellMember();
     else if (choice == 3) changeCellMemberRole();
     else if (choice == 4) removeCellMember();
     else std::cout << "Invalid member action.\n" << std::endl;
+}
+
+std::optional<CellRole> ConsoleUI::currentCellRole() const
+{
+    const auto members = m_cellService.getCellMembers(m_currentUserId, m_currentCellId);
+    const auto member = std::find_if(
+        members.begin(), members.end(),
+        [this](const CellMember& value) { return value.userId == m_currentUserId; });
+    if (member == members.end()) return std::nullopt;
+    return member->role;
 }
 
 bool ConsoleUI::readChoice(int& choice) const
