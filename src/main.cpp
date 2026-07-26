@@ -6,6 +6,7 @@
 #include "storage/sqlite/SQLiteCellRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteMigrations.h"
+#include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 
 int main()
@@ -20,9 +21,11 @@ int main()
         SQLiteUserRepository userRepository(database);
         UserService userService{userRepository};
         SQLiteCellRepository cellRepository(database);
-        CellService cellService{cellRepository};
+        CellService cellService{cellRepository, userRepository};
+        SQLiteTransactionRepository transactionRepository(database);
+        TransactionService transactionService{transactionRepository, cellRepository};
 
-        ConsoleUI ui{userService, cellService};
+        ConsoleUI ui{userService, cellService, transactionService};
         ui.runApp();
     }
     catch (const std::exception& e)
