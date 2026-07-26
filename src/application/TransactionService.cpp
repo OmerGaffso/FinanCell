@@ -15,15 +15,20 @@ std::optional<Transaction> TransactionService::addTransaction(
     uint64_t cellId,
     TransactionType type,
     const std::string& description,
-    int64_t amountInMinorUnits)
+    int64_t amountInMinorUnits,
+    const std::string& occurredAt,
+    const std::string& category)
 {
     const std::string trimmedDescription = StringUtils::trim(description);
     if (!canWrite(actingUserId, cellId) || !isValid(trimmedDescription, amountInMinorUnits))
     {
         return std::nullopt;
     }
+    const std::string trimmedCategory = StringUtils::trim(category);
+    if (trimmedCategory.empty() || trimmedCategory.length() > 50) return std::nullopt;
     return m_transactionRepository.insertTransaction(Transaction(
-        0, cellId, actingUserId, type, trimmedDescription, amountInMinorUnits));
+        0, cellId, actingUserId, type, trimmedDescription, amountInMinorUnits,
+        occurredAt, trimmedCategory));
 }
 
 bool TransactionService::editTransaction(
@@ -51,7 +56,8 @@ bool TransactionService::editTransaction(
         type,
         trimmedDescription,
         amountInMinorUnits,
-        transaction->getOccurredAt()));
+        transaction->getOccurredAt(),
+        transaction->getCategory()));
 }
 
 bool TransactionService::deleteTransaction(uint64_t actingUserId, uint64_t transactionId)
@@ -69,9 +75,13 @@ bool TransactionService::deleteTransaction(uint64_t actingUserId, uint64_t trans
 
 std::optional<std::vector<Transaction>> TransactionService::getTransactionsForCell(
     uint64_t actingUserId,
-    uint64_t cellId) const
+    uint64_t cellId,
+    const std::string& fromDate,
+    const std::string& toDate) const
 {
     if (!canRead(actingUserId, cellId)) return std::nullopt;
+    if (!fromDate.empty() && !toDate.empty())
+        return m_transactionRepository.findTransactionsByDateRange(cellId, fromDate, toDate);
     return m_transactionRepository.findTransactionsByCellId(cellId);
 }
 

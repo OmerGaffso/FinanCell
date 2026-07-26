@@ -11,11 +11,11 @@ class User
         std::string getUsername() const;
         std::string getDisplayName() const;
         std::uint64_t getUserId() const;
-        bool checkPassword(const std::string& password) const;
+        const std::string& getPasswordHash() const;
 
     private:
         std::string m_username;
         std::string m_displayName;
         std::uint64_t m_userId;
-        std::string m_password;
+        std::string m_passwordHash;
 };

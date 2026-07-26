@@ -84,4 +84,10 @@ inline constexpr char CREATE_TRANSACTIONS_CELL_INDEX[] = R"sql(
 CREATE INDEX IF NOT EXISTS idx_transactions_cell_date
 ON transactions(cell_id, occurred_at, id);
 )sql";
+
+inline constexpr char ADD_TRANSACTION_CATEGORY[] = R"sql(
+ALTER TABLE transactions
+ADD COLUMN category TEXT NOT NULL DEFAULT 'General'
+CHECK(length(category) BETWEEN 1 AND 50);
+)sql";
 }

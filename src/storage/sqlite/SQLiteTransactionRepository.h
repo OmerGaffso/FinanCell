@@ -11,6 +11,8 @@ public:
     std::optional<Transaction> insertTransaction(const Transaction& transaction) override;
     std::optional<Transaction> findTransactionById(uint64_t transactionId) const override;
     std::vector<Transaction> findTransactionsByCellId(uint64_t cellId) const override;
+    std::vector<Transaction> findTransactionsByDateRange(
+        uint64_t cellId, const std::string& fromDate, const std::string& toDate) const override;
     bool updateTransaction(const Transaction& transaction) override;
     bool deleteTransaction(uint64_t transactionId) override;
     int64_t calculateCellBalance(uint64_t cellId) const override;

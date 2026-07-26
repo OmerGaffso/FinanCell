@@ -7,6 +7,22 @@
 #include <optional>
 #include <vector>
 
+/** Detailed outcome for an authorized cell mutation. */
+enum class CellOperationResult
+{
+    SUCCESS,
+    CELL_NOT_FOUND,
+    USER_NOT_FOUND,
+    ALREADY_MEMBER,
+    MEMBER_NOT_FOUND,
+    INVALID_ROLE,
+    INVALID_INPUT,
+    NOT_AUTHORIZED,
+    CANNOT_MODIFY_OWNER,
+    STORAGE_ERROR
+};
+
+/** Coordinates cell validation, membership, and authorization rules. */
 class CellService
 {
 public:
@@ -17,11 +33,11 @@ public:
     CellService(CellRepository& cellRepository, UserRepository& userRepository);
 
     bool createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription);
-    bool addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role);
-    bool updateMemberRole(uint64_t actingUserId, uint64_t cellId, uint64_t memberUserId, CellRole role);
-    bool removeMemberFromCell(uint64_t actingUserId, uint64_t cellId, uint64_t memberUserId);
-    bool updateCell(uint64_t actingUserId, uint64_t cellId, const std::string& name, const std::string& description);
-    bool deleteCell(uint64_t actingUserId, uint64_t cellId);
+    CellOperationResult addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role);
+    CellOperationResult updateMemberRole(uint64_t actingUserId, uint64_t cellId, uint64_t memberUserId, CellRole role);
+    CellOperationResult removeMemberFromCell(uint64_t actingUserId, uint64_t cellId, uint64_t memberUserId);
+    CellOperationResult updateCell(uint64_t actingUserId, uint64_t cellId, const std::string& name, const std::string& description);
+    CellOperationResult deleteCell(uint64_t actingUserId, uint64_t cellId);
 
     bool cellExists(uint64_t cellId) const;
     std::vector<FinancialCell> getCells() const;

@@ -41,52 +41,49 @@ bool CellService::createCell(const std::string& cellName, uint64_t ownerId, cons
         .has_value();
 }
 
-bool CellService::addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role)
+CellOperationResult CellService::addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role)
 {
     const auto cell = m_cellRepository.findCellById(cellId);
-    if (!cell || !isOwner(actingUserId, *cell) || role == CellRole::OWNER ||
-        !m_userRepository.findUserById(newUserId) ||
-        m_cellRepository.findMember(cellId, newUserId))
-    {
-        return false;
-    }
-
-    return m_cellRepository.insertMember({newUserId, cellId, role});
+    if (!cell) return CellOperationResult::CELL_NOT_FOUND;
+    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    if (role == CellRole::OWNER) return CellOperationResult::INVALID_ROLE;
+    if (!m_userRepository.findUserById(newUserId)) return CellOperationResult::USER_NOT_FOUND;
+    if (m_cellRepository.findMember(cellId, newUserId)) return CellOperationResult::ALREADY_MEMBER;
+    return m_cellRepository.insertMember({newUserId, cellId, role})
+        ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 
-bool CellService::updateMemberRole(
+CellOperationResult CellService::updateMemberRole(
     uint64_t actingUserId,
     uint64_t cellId,
     uint64_t memberUserId,
     CellRole role)
 {
     const auto cell = m_cellRepository.findCellById(cellId);
-    if (!cell || !isOwner(actingUserId, *cell) ||
-        memberUserId == cell->getOwnerId() || role == CellRole::OWNER ||
-        !m_cellRepository.findMember(cellId, memberUserId))
-    {
-        return false;
-    }
-
-    return m_cellRepository.updateMemberRole(cellId, memberUserId, role);
+    if (!cell) return CellOperationResult::CELL_NOT_FOUND;
+    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    if (memberUserId == cell->getOwnerId()) return CellOperationResult::CANNOT_MODIFY_OWNER;
+    if (role == CellRole::OWNER) return CellOperationResult::INVALID_ROLE;
+    if (!m_cellRepository.findMember(cellId, memberUserId)) return CellOperationResult::MEMBER_NOT_FOUND;
+    return m_cellRepository.updateMemberRole(cellId, memberUserId, role)
+        ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 
-bool CellService::removeMemberFromCell(
+CellOperationResult CellService::removeMemberFromCell(
     uint64_t actingUserId,
     uint64_t cellId,
     uint64_t memberUserId)
 {
     const auto cell = m_cellRepository.findCellById(cellId);
-    if (!cell || !isOwner(actingUserId, *cell) ||
-        memberUserId == cell->getOwnerId())
-    {
-        return false;
-    }
-
-    return m_cellRepository.deleteMember(cellId, memberUserId);
+    if (!cell) return CellOperationResult::CELL_NOT_FOUND;
+    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    if (memberUserId == cell->getOwnerId()) return CellOperationResult::CANNOT_MODIFY_OWNER;
+    if (!m_cellRepository.findMember(cellId, memberUserId)) return CellOperationResult::MEMBER_NOT_FOUND;
+    return m_cellRepository.deleteMember(cellId, memberUserId)
+        ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 
-bool CellService::updateCell(
+CellOperationResult CellService::updateCell(
     uint64_t actingUserId,
     uint64_t cellId,
     const std::string& name,
@@ -95,24 +92,25 @@ bool CellService::updateCell(
     const auto cell = m_cellRepository.findCellById(cellId);
     const std::string trimmedName = StringUtils::trim(name);
     const std::string trimmedDescription = StringUtils::trim(description);
-    if (!cell || !isOwner(actingUserId, *cell) ||
-        !isCellNameValid(trimmedName) || !isDescriptionValid(trimmedDescription))
-    {
-        return false;
-    }
-
+    if (!cell) return CellOperationResult::CELL_NOT_FOUND;
+    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    if (!isCellNameValid(trimmedName) || !isDescriptionValid(trimmedDescription))
+        return CellOperationResult::INVALID_INPUT;
     return m_cellRepository.updateCell(FinancialCell(
         cellId,
         trimmedName,
         trimmedDescription,
         cell->getUsesCurrency(),
-        cell->getOwnerId()));
+        cell->getOwnerId())) ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 
-bool CellService::deleteCell(uint64_t actingUserId, uint64_t cellId)
+CellOperationResult CellService::deleteCell(uint64_t actingUserId, uint64_t cellId)
 {
     const auto cell = m_cellRepository.findCellById(cellId);
-    return cell && isOwner(actingUserId, *cell) && m_cellRepository.deleteCell(cellId);
+    if (!cell) return CellOperationResult::CELL_NOT_FOUND;
+    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    return m_cellRepository.deleteCell(cellId)
+        ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 
 bool CellService::cellExists(uint64_t cellId) const

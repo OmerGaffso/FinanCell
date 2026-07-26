@@ -4,12 +4,14 @@
 #include <string>
 #include <utility>
 
+/** Direction of money represented by a transaction. */
 enum class TransactionType
 {
     INCOME,
     EXPENSE
 };
 
+/** Immutable financial transaction stored in minor currency units. */
 class Transaction
 {
 public:
@@ -20,14 +22,16 @@ public:
         TransactionType type,
         std::string description,
         int64_t amountInMinorUnits,
-        std::string occurredAt = "")
+        std::string occurredAt = "",
+        std::string category = "General")
         : m_transactionId(transactionId),
           m_cellId(cellId),
           m_userId(userId),
           m_type(type),
           m_description(std::move(description)),
           m_amountInMinorUnits(amountInMinorUnits),
-          m_occurredAt(std::move(occurredAt))
+          m_occurredAt(std::move(occurredAt)),
+          m_category(std::move(category))
     {
     }
 
@@ -38,6 +42,7 @@ public:
     const std::string& getDescription() const { return m_description; }
     int64_t getAmountInMinorUnits() const { return m_amountInMinorUnits; }
     const std::string& getOccurredAt() const { return m_occurredAt; }
+    const std::string& getCategory() const { return m_category; }
 
 private:
     uint64_t m_transactionId;
@@ -47,4 +52,5 @@ private:
     std::string m_description;
     int64_t m_amountInMinorUnits;
     std::string m_occurredAt;
+    std::string m_category;
 };

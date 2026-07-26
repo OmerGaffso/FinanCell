@@ -100,5 +100,14 @@ void SQLiteMigrations::apply(SQLiteDatabase& database)
                 database.execute(Schema::CREATE_TRANSACTIONS_TABLE);
                 database.execute(Schema::CREATE_TRANSACTIONS_CELL_INDEX);
             });
+        version = 3;
+    }
+
+    if (version < 4)
+    {
+        applyMigration(database, 4, [&database]
+        {
+            database.execute(Schema::ADD_TRANSACTION_CATEGORY);
+        });
     }
 }

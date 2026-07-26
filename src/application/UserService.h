@@ -7,8 +7,10 @@
 
 #include "application/UserRepository.h"
 #include "domain/User.h"
+#include "security/PasswordHasher.h"
 
-class UserService 
+/** Handles account validation, password hashing, and authentication. */
+class UserService
 {
     public:
         static constexpr std::size_t MIN_USERNAME_LENGTH = 3;
@@ -18,7 +20,7 @@ class UserService
         static constexpr std::size_t MIN_PASSWORD_LENGTH = 6;
         static constexpr std::size_t MAX_PASSWORD_LENGTH = 18;
 
-        explicit UserService(UserRepository& userRepository);
+        UserService(UserRepository& userRepository, PasswordHasher& passwordHasher);
         bool createUser(std::string& username, std::string& displayName, std::string& password);
         bool userExists(const std::string& username) const;
         bool isUsernameLengthValid(const std::string& username) const;
@@ -27,8 +29,10 @@ class UserService
 
         std::optional<User> authenticateUser(const std::string& username, const std::string& password) const;
         std::optional<User> findUserByUsername(const std::string& username) const;
+        std::optional<User> findUserById(std::uint64_t userId) const;
         std::vector<User> getUsers() const;
 
     private:
         UserRepository& m_userRepository;
+        PasswordHasher& m_passwordHasher;
 };

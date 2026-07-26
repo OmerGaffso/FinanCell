@@ -8,6 +8,7 @@
 #include "storage/sqlite/SQLiteMigrations.h"
 #include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
+#include "security/PasswordHasher.h"
 
 int main()
 {
@@ -19,7 +20,8 @@ int main()
         SQLiteMigrations::apply(database);
 
         SQLiteUserRepository userRepository(database);
-        UserService userService{userRepository};
+        SodiumPasswordHasher passwordHasher;
+        UserService userService{userRepository, passwordHasher};
         SQLiteCellRepository cellRepository(database);
         CellService cellService{cellRepository, userRepository};
         SQLiteTransactionRepository transactionRepository(database);

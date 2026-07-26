@@ -16,6 +16,7 @@ public:
     bool userExists(const std::string& username) const override;
     std::optional<User> findUserById(std::uint64_t userId) const override;
     std::optional<User> findUserByUsername(const std::string& username) const override;
+    bool updatePasswordHash(std::uint64_t userId, const std::string& passwordHash) override;
     std::vector<User> findAllUsers() const override;
 
 private:

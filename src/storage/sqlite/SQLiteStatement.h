@@ -7,6 +7,7 @@
 
 #include "storage/sqlite/SQLiteDatabase.h"
 
+/** RAII wrapper for a prepared SQLite statement. */
 class SQLiteStatement
 {
 public:

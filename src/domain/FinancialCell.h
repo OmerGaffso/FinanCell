@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 
+/** A shared financial workspace owned by one user. */
 class FinancialCell
 {
 public:

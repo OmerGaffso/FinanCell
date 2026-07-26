@@ -4,8 +4,8 @@
 
 #include "utils/StringUtils.h"
 
-UserService::UserService(UserRepository& userRepository)
-    : m_userRepository(userRepository)
+UserService::UserService(UserRepository& userRepository, PasswordHasher& passwordHasher)
+    : m_userRepository(userRepository), m_passwordHasher(passwordHasher)
 {
 }
 
@@ -23,7 +23,7 @@ bool UserService::createUser(std::string& username, std::string& displayName, st
         return false;
     }
 
-    return m_userRepository.insertUser(username, displayName, password);
+    return m_userRepository.insertUser(username, displayName, m_passwordHasher.hash(password));
 }
 
 std::optional<User> UserService::authenticateUser(
@@ -33,9 +33,20 @@ std::optional<User> UserService::authenticateUser(
     const std::string normalizedUsername = StringUtils::normalize(username);
     std::optional<User> user = m_userRepository.findUserByUsername(normalizedUsername);
 
-    if (!user || !user->checkPassword(password))
+    if (!user)
     {
         return std::nullopt;
+    }
+
+    const std::string& stored = user->getPasswordHash();
+    if (m_passwordHasher.isEncodedHash(stored))
+    {
+        if (!m_passwordHasher.verify(password, stored)) return std::nullopt;
+    }
+    else
+    {
+        if (stored != password) return std::nullopt;
+        m_userRepository.updatePasswordHash(user->getUserId(), m_passwordHasher.hash(password));
     }
 
     return user;
@@ -45,6 +56,11 @@ std::optional<User> UserService::findUserByUsername(
     const std::string& username) const
 {
     return m_userRepository.findUserByUsername(StringUtils::normalize(username));
+}
+
+std::optional<User> UserService::findUserById(std::uint64_t userId) const
+{
+    return m_userRepository.findUserById(userId);
 }
 
 bool UserService::userExists(const std::string& username) const

@@ -7,6 +7,7 @@
 #include "domain/CellMember.h"
 #include "domain/FinancialCell.h"
 
+/** Persistence contract for cells and their memberships. */
 class CellRepository
 {
 public:

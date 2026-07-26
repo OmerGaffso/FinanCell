@@ -5,6 +5,7 @@
 
 struct sqlite3;
 
+/** RAII owner of a SQLite connection shared by repositories. */
 class SQLiteDatabase
 {
 public:

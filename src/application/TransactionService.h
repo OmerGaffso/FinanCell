@@ -9,6 +9,7 @@
 #include "application/CellRepository.h"
 #include "application/TransactionRepository.h"
 
+/** Enforces transaction validation and role-based access rules. */
 class TransactionService
 {
 public:
@@ -23,7 +24,9 @@ public:
         uint64_t cellId,
         TransactionType type,
         const std::string& description,
-        int64_t amountInMinorUnits);
+        int64_t amountInMinorUnits,
+        const std::string& occurredAt = "",
+        const std::string& category = "General");
     bool editTransaction(
         uint64_t actingUserId,
         uint64_t transactionId,
@@ -33,7 +36,9 @@ public:
     bool deleteTransaction(uint64_t actingUserId, uint64_t transactionId);
     std::optional<std::vector<Transaction>> getTransactionsForCell(
         uint64_t actingUserId,
-        uint64_t cellId) const;
+        uint64_t cellId,
+        const std::string& fromDate = "",
+        const std::string& toDate = "") const;
     std::optional<int64_t> getCellBalance(uint64_t actingUserId, uint64_t cellId) const;
 
 private:

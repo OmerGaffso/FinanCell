@@ -38,7 +38,11 @@ private:
     void printCellBalance();
     void displayMainMenu() const;
     void displayUserActionMenu() const;
+    void displayCellActionMenu() const;
+    void selectCell();
+    void manageMembers();
     bool readChoice(int& choice) const;
+    bool readPassword(const std::string& prompt, std::string& password) const;
     bool readId(const std::string& prompt, std::uint64_t& value) const;
     bool readRole(CellRole& role) const;
     bool readTransactionType(TransactionType& type) const;
@@ -59,4 +63,5 @@ private:
     CellService& m_cellService;
     TransactionService& m_transactionService;
     std::uint64_t m_currentUserId = 0; // Track the current user ID
+    std::uint64_t m_currentCellId = 0;
 };

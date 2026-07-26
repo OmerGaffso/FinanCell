@@ -7,22 +7,41 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
+#include <termios.h>
+#include <unistd.h>
 
 #include "utils/StringUtils.h"
+
+namespace
+{
+const char* cellResultMessage(CellOperationResult result)
+{
+    switch (result)
+    {
+        case CellOperationResult::SUCCESS: return "Operation completed successfully.";
+        case CellOperationResult::CELL_NOT_FOUND: return "Cell not found.";
+        case CellOperationResult::USER_NOT_FOUND: return "User not found.";
+        case CellOperationResult::ALREADY_MEMBER: return "User is already a member.";
+        case CellOperationResult::MEMBER_NOT_FOUND: return "Member not found.";
+        case CellOperationResult::INVALID_ROLE: return "The requested role is invalid.";
+        case CellOperationResult::INVALID_INPUT: return "The supplied cell data is invalid.";
+        case CellOperationResult::NOT_AUTHORIZED: return "You are not authorized for this operation.";
+        case CellOperationResult::CANNOT_MODIFY_OWNER: return "The cell owner cannot be modified.";
+        case CellOperationResult::STORAGE_ERROR: return "The database operation failed.";
+    }
+    return "Unknown operation result.";
+}
+}
 
 void ConsoleUI::runApp()
 {
     bool isRunning = true;
-    while(isRunning)
+    while (isRunning)
     {
-        if (m_currentUserId == 0)
-        {
-            displayMainMenu();
-        }
-        else
-        {
-            displayUserActionMenu();
-        }
+        if (m_currentUserId == 0) displayMainMenu();
+        else if (m_currentCellId == 0) displayUserActionMenu();
+        else displayCellActionMenu();
+
         int choice;
         if (!readChoice(choice))
         {
@@ -44,8 +63,28 @@ void ConsoleUI::runApp()
                 case 2:
                     login();
                     break;
+                default:
+                    std::cout << "Please select a valid menu option.\n" << std::endl;
+                    break;
+            }
+        }
+        else if (m_currentCellId == 0)
+        {
+            switch (choice)
+            {
+                case 0:
+                case 4:
+                    std::cout << "Logging out...\n" << std::endl;
+                    m_currentUserId = 0;
+                    break;
+                case 1:
+                    createCell();
+                    break;
+                case 2:
+                    printCells();
+                    break;
                 case 3:
-                    printUsers();
+                    selectCell();
                     break;
                 default:
                     std::cout << "Please select a valid menu option.\n" << std::endl;
@@ -56,52 +95,18 @@ void ConsoleUI::runApp()
         {
             switch (choice)
             {
+                case 1: printTransactions(); break;
+                case 2: addTransaction(); break;
+                case 3: editTransaction(); break;
+                case 4: deleteTransaction(); break;
+                case 5: printCellBalance(); break;
+                case 6: manageMembers(); break;
+                case 7: editCell(); break;
+                case 8: deleteCell(); break;
                 case 0:
-                    std::cout << "Logging out...\n" << std::endl;
-                    m_currentUserId = 0; // Reset current user ID on logout
-                    break;
-                case 1:
-                    createCell();
-                    break;
-                case 2:
-                    printCells();
-                    break;
-                case 3:
-                    printCellMembers();
-                    break;
-                case 4:
-                    addCellMember();
-                    break;
-                case 5:
-                    changeCellMemberRole();
-                    break;
-                case 6:
-                    removeCellMember();
-                    break;
-                case 7:
-                    editCell();
-                    break;
-                case 8:
-                    deleteCell();
-                    break;
-                case 9:
-                    printTransactions();
-                    break;
-                case 10:
-                    addTransaction();
-                    break;
-                case 11:
-                    editTransaction();
-                    break;
-                case 12:
-                    deleteTransaction();
-                    break;
-                case 13:
-                    printCellBalance();
-                    break;
+                case 9: m_currentCellId = 0; break;
                 default:
                     std::cout << "Please select a valid menu option.\n" << std::endl;
-                    break;
             }
         }
     }
@@ -130,8 +135,7 @@ void ConsoleUI::createAccount()
         return;
     }
 
-    std::cout << "Password: ";
-    std::getline(std::cin, password);
+    if (!readPassword("Password: ", password)) return;
 
     if (!validatePassword(password))
     {
@@ -197,8 +201,7 @@ void ConsoleUI::login()
     std::cout << "Username: ";
     std::getline(std::cin, username);
 
-    std::cout << "Password: ";
-    std::getline(std::cin, password);
+    if (!readPassword("Password: ", password)) return;
 
     if (const std::optional<User> user = m_userService.authenticateUser(username, password))
     {
@@ -261,8 +264,7 @@ void ConsoleUI::printCells() const
 
 void ConsoleUI::printCellMembers()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
 
     const auto members = m_cellService.getCellMembers(m_currentUserId, cellId);
     if (members.empty())
@@ -276,15 +278,16 @@ void ConsoleUI::printCellMembers()
     {
         const char* role = member.role == CellRole::OWNER ? "OWNER" :
                            member.role == CellRole::MEMBER ? "MEMBER" : "GUEST";
-        std::cout << "User ID: " << member.userId << ", Role: " << role << '\n';
+        const auto user = m_userService.findUserById(member.userId);
+        std::cout << "User: " << (user ? user->getUsername() : "unknown")
+                  << " (ID: " << member.userId << "), Role: " << role << '\n';
     }
     std::cout << std::endl;
 }
 
 void ConsoleUI::addCellMember()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
 
     std::string username;
     std::cout << "Username to add: ";
@@ -298,62 +301,48 @@ void ConsoleUI::addCellMember()
 
     CellRole role;
     if (!readRole(role)) return;
-    if (m_cellService.addMemberToCell(
-            m_currentUserId, cellId, user->getUserId(), role))
-    {
-        std::cout << "Member added successfully.\n" << std::endl;
-    }
-    else
-    {
-        std::cout << "Could not add member. Check ownership and existing membership.\n" << std::endl;
-    }
+    const auto result = m_cellService.addMemberToCell(
+        m_currentUserId, cellId, user->getUserId(), role);
+    std::cout << cellResultMessage(result) << '\n' << std::endl;
 }
 
 void ConsoleUI::changeCellMemberRole()
 {
-    std::uint64_t cellId;
+    const std::uint64_t cellId = m_currentCellId;
     std::uint64_t userId;
-    if (!readId("Cell ID: ", cellId) || !readId("Member user ID: ", userId)) return;
+    if (!readId("Member user ID: ", userId)) return;
     CellRole role;
     if (!readRole(role)) return;
 
-    std::cout << (m_cellService.updateMemberRole(
-                      m_currentUserId, cellId, userId, role)
-                      ? "Member role updated successfully.\n\n"
-                      : "Could not update member role.\n\n");
+    std::cout << cellResultMessage(m_cellService.updateMemberRole(
+        m_currentUserId, cellId, userId, role)) << '\n' << std::endl;
 }
 
 void ConsoleUI::removeCellMember()
 {
-    std::uint64_t cellId;
+    const std::uint64_t cellId = m_currentCellId;
     std::uint64_t userId;
-    if (!readId("Cell ID: ", cellId) || !readId("Member user ID: ", userId)) return;
-    std::cout << (m_cellService.removeMemberFromCell(
-                      m_currentUserId, cellId, userId)
-                      ? "Member removed successfully.\n\n"
-                      : "Could not remove member.\n\n");
+    if (!readId("Member user ID: ", userId)) return;
+    std::cout << cellResultMessage(m_cellService.removeMemberFromCell(
+        m_currentUserId, cellId, userId)) << '\n' << std::endl;
 }
 
 void ConsoleUI::editCell()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
     std::string name;
     std::string description;
     std::cout << "New cell name: ";
     std::getline(std::cin, name);
     std::cout << "New description: ";
     std::getline(std::cin, description);
-    std::cout << (m_cellService.updateCell(
-                      m_currentUserId, cellId, name, description)
-                      ? "Cell updated successfully.\n\n"
-                      : "Could not update cell.\n\n");
+    std::cout << cellResultMessage(m_cellService.updateCell(
+        m_currentUserId, cellId, name, description)) << '\n' << std::endl;
 }
 
 void ConsoleUI::deleteCell()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
     std::string confirmation;
     std::cout << "Type DELETE to permanently delete the cell: ";
     std::getline(std::cin, confirmation);
@@ -362,17 +351,29 @@ void ConsoleUI::deleteCell()
         std::cout << "Deletion cancelled.\n" << std::endl;
         return;
     }
-    std::cout << (m_cellService.deleteCell(m_currentUserId, cellId)
-                      ? "Cell deleted successfully.\n\n"
-                      : "Could not delete cell.\n\n");
+    const auto result = m_cellService.deleteCell(m_currentUserId, cellId);
+    if (result == CellOperationResult::SUCCESS)
+    {
+        std::cout << "Cell deleted successfully.\n" << std::endl;
+        m_currentCellId = 0;
+    }
+    else std::cout << cellResultMessage(result) << '\n' << std::endl;
 }
 
 void ConsoleUI::printTransactions()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
+    std::string fromDate;
+    std::string toDate;
+    std::cout << "From date YYYY-MM-DD (blank for all): ";
+    std::getline(std::cin, fromDate);
+    if (!fromDate.empty())
+    {
+        std::cout << "To date YYYY-MM-DD: ";
+        std::getline(std::cin, toDate);
+    }
     const auto transactions =
-        m_transactionService.getTransactionsForCell(m_currentUserId, cellId);
+        m_transactionService.getTransactionsForCell(m_currentUserId, cellId, fromDate, toDate);
     if (!transactions)
     {
         std::cout << "Cell not found or access denied.\n" << std::endl;
@@ -392,6 +393,7 @@ void ConsoleUI::printTransactions()
                   << (transaction.getType() == TransactionType::INCOME ? "INCOME" : "EXPENSE")
                   << ", Amount: " << formatMoney(transaction.getAmountInMinorUnits())
                   << ", Description: " << transaction.getDescription()
+                  << ", Category: " << transaction.getCategory()
                   << ", Created by user: " << transaction.getUserId()
                   << ", Date: " << transaction.getOccurredAt() << '\n';
     }
@@ -400,8 +402,7 @@ void ConsoleUI::printTransactions()
 
 void ConsoleUI::addTransaction()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
     TransactionType type;
     if (!readTransactionType(type)) return;
     std::string description;
@@ -409,9 +410,16 @@ void ConsoleUI::addTransaction()
     std::getline(std::cin, description);
     std::int64_t amount;
     if (!readAmount(amount)) return;
+    std::string category;
+    std::string occurredAt;
+    std::cout << "Category (blank for General): ";
+    std::getline(std::cin, category);
+    if (StringUtils::trim(category).empty()) category = "General";
+    std::cout << "Date YYYY-MM-DD (blank for today): ";
+    std::getline(std::cin, occurredAt);
 
     const auto transaction = m_transactionService.addTransaction(
-        m_currentUserId, cellId, type, description, amount);
+        m_currentUserId, cellId, type, description, amount, occurredAt, category);
     std::cout << (transaction ? "Transaction added successfully.\n\n"
                               : "Could not add transaction.\n\n");
 }
@@ -445,15 +453,52 @@ void ConsoleUI::deleteTransaction()
 
 void ConsoleUI::printCellBalance()
 {
-    std::uint64_t cellId;
-    if (!readId("Cell ID: ", cellId)) return;
+    const std::uint64_t cellId = m_currentCellId;
     const auto balance = m_transactionService.getCellBalance(m_currentUserId, cellId);
     if (!balance)
     {
         std::cout << "Cell not found or access denied.\n" << std::endl;
         return;
     }
-    std::cout << "Cell balance: " << formatMoney(*balance) << '\n' << std::endl;
+    const auto transactions = m_transactionService.getTransactionsForCell(m_currentUserId, cellId);
+    std::int64_t income = 0;
+    std::int64_t expenses = 0;
+    if (transactions)
+    {
+        for (const Transaction& transaction : *transactions)
+        {
+            if (transaction.getType() == TransactionType::INCOME)
+                income += transaction.getAmountInMinorUnits();
+            else expenses += transaction.getAmountInMinorUnits();
+        }
+    }
+    std::cout << "Total income: " << formatMoney(income)
+              << "\nTotal expenses: " << formatMoney(expenses)
+              << "\nCurrent balance: " << formatMoney(*balance) << '\n';
+
+    std::string month;
+    std::cout << "Month summary YYYY-MM (blank to skip): ";
+    std::getline(std::cin, month);
+    if (!month.empty())
+    {
+        const auto monthly = m_transactionService.getTransactionsForCell(
+            m_currentUserId, cellId, month + "-01", month + "-31");
+        std::int64_t monthlyIncome = 0;
+        std::int64_t monthlyExpenses = 0;
+        if (monthly)
+        {
+            for (const Transaction& transaction : *monthly)
+            {
+                if (transaction.getType() == TransactionType::INCOME)
+                    monthlyIncome += transaction.getAmountInMinorUnits();
+                else monthlyExpenses += transaction.getAmountInMinorUnits();
+            }
+        }
+        std::cout << "Monthly income: " << formatMoney(monthlyIncome)
+                  << "\nMonthly expenses: " << formatMoney(monthlyExpenses)
+                  << "\nMonthly net: " << formatMoney(monthlyIncome - monthlyExpenses) << '\n';
+    }
+    std::cout << std::endl;
 }
 
 void ConsoleUI::displayMainMenu() const
@@ -463,7 +508,6 @@ void ConsoleUI::displayMainMenu() const
     std::cout << "==============" << std::endl;
     std::cout << "1. Create Account" << std::endl;
     std::cout << "2. Login" << std::endl;
-    std::cout << "3. Print Users" << std::endl;
     std::cout << "0. Exit" << std::endl;
     std::cout << "==============" << std::endl;
 }
@@ -475,19 +519,42 @@ void ConsoleUI::displayUserActionMenu() const
     std::cout << "==============" << std::endl;
     std::cout << "1. Create Cell" << std::endl;
     std::cout << "2. View My Cells" << std::endl;
-    std::cout << "3. View Cell Members" << std::endl;
-    std::cout << "4. Add Cell Member" << std::endl;
-    std::cout << "5. Change Member Role" << std::endl;
-    std::cout << "6. Remove Cell Member" << std::endl;
-    std::cout << "7. Edit Cell" << std::endl;
-    std::cout << "8. Delete Cell" << std::endl;
-    std::cout << "9. View Transactions" << std::endl;
-    std::cout << "10. Add Transaction" << std::endl;
-    std::cout << "11. Edit Transaction" << std::endl;
-    std::cout << "12. Delete Transaction" << std::endl;
-    std::cout << "13. View Cell Balance" << std::endl;
-    std::cout << "0. Logout" << std::endl;
+    std::cout << "3. Select Cell" << std::endl;
+    std::cout << "4. Logout" << std::endl;
     std::cout << "==============" << std::endl;
+}
+
+void ConsoleUI::displayCellActionMenu() const
+{
+    std::cout << "========== Cell " << m_currentCellId << " ==========\n"
+              << "1. View Transactions\n2. Add Transaction\n3. Edit Transaction\n"
+              << "4. Delete Transaction\n5. View Balance and Summary\n"
+              << "6. Manage Members\n7. Edit Cell\n8. Delete Cell\n9. Back\n"
+              << "============================\n";
+}
+
+void ConsoleUI::selectCell()
+{
+    std::uint64_t cellId;
+    if (!readId("Cell ID: ", cellId)) return;
+    if (!m_cellService.getCellForUser(m_currentUserId, cellId))
+    {
+        std::cout << "Cell not found or access denied.\n" << std::endl;
+        return;
+    }
+    m_currentCellId = cellId;
+}
+
+void ConsoleUI::manageMembers()
+{
+    std::cout << "1. View Members\n2. Add Member\n3. Change Role\n4. Remove Member\n";
+    int choice;
+    if (!readChoice(choice)) return;
+    if (choice == 1) printCellMembers();
+    else if (choice == 2) addCellMember();
+    else if (choice == 3) changeCellMemberRole();
+    else if (choice == 4) removeCellMember();
+    else std::cout << "Invalid member action.\n" << std::endl;
 }
 
 bool ConsoleUI::readChoice(int& choice) const
@@ -511,6 +578,26 @@ bool ConsoleUI::readChoice(int& choice) const
 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return true;
+}
+
+bool ConsoleUI::readPassword(const std::string& prompt, std::string& password) const
+{
+    std::cout << prompt << std::flush;
+    termios original{};
+    const bool terminal = isatty(STDIN_FILENO) && tcgetattr(STDIN_FILENO, &original) == 0;
+    if (terminal)
+    {
+        termios hidden = original;
+        hidden.c_lflag &= static_cast<tcflag_t>(~ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &hidden);
+    }
+    const bool read = static_cast<bool>(std::getline(std::cin, password));
+    if (terminal)
+    {
+        tcsetattr(STDIN_FILENO, TCSANOW, &original);
+        std::cout << '\n';
+    }
+    return read;
 }
 
 bool ConsoleUI::readId(const std::string& prompt, std::uint64_t& value) const

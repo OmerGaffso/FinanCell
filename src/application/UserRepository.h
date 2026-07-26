@@ -18,5 +18,6 @@ public:
     virtual bool userExists(const std::string& username) const = 0;
     virtual std::optional<User> findUserById(std::uint64_t userId) const = 0;
     virtual std::optional<User> findUserByUsername(const std::string& username) const = 0;
+    virtual bool updatePasswordHash(std::uint64_t userId, const std::string& passwordHash) = 0;
     virtual std::vector<User> findAllUsers() const = 0;
 };
