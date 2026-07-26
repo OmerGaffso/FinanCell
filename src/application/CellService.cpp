@@ -9,8 +9,13 @@ CellService::CellService(CellRepository& cellRepository)
 
 bool CellService::createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription)
 {
-    std::string trimmedCellName = StringUtils::trim(cellName);
-    std::string trimmedCellDescription = StringUtils::trim(cellDescription);
+    const std::string trimmedCellName = StringUtils::trim(cellName);
+    const std::string trimmedCellDescription = StringUtils::trim(cellDescription);
+
+    if (ownerId == 0)
+    {
+        throw std::invalid_argument("A cell must have a valid owner.");
+    }
 
     if (!isCellNameValid(trimmedCellName))
     {
@@ -54,7 +59,7 @@ std::vector<FinancialCell> CellService::getCells() const
 
 bool CellService::isCellNameValid(const std::string& cellName) const
 {
-    const std::size_t length = cellName.length();
+    const std::size_t length = StringUtils::trim(cellName).length();
     if (length < MIN_CELL_NAME_LENGTH || length > MAX_CELL_NAME_LENGTH)
     {
         return false;
@@ -65,7 +70,7 @@ bool CellService::isCellNameValid(const std::string& cellName) const
 
 bool CellService::isDescriptionValid(const std::string& description) const
 {
-    const std::size_t length = description.length();
+    const std::size_t length = StringUtils::trim(description).length();
     if (length < MIN_DESCRIPTION_LENGTH || length > MAX_DESCRIPTION_LENGTH)
     {
         return false;

@@ -1,7 +1,5 @@
 #include "ui/console/ConsoleUI.h"
 
-#include "utils/StringUtils.h"
-
 #include <algorithm>
 #include <cctype>
 #include <iostream>
@@ -133,7 +131,7 @@ void ConsoleUI::createCell()
 
     if (!validateCellName(cellName))
     {
-        std::cout << "Invalide cell name.\n" << std::endl;
+        std::cout << "Invalid cell name.\n" << std::endl;
         return;
     }
 
@@ -142,13 +140,13 @@ void ConsoleUI::createCell()
 
     if (!validateCellDescription(cellDescription))
     {
-        std::cout << "Invalide cell description.\n" << std::endl;
+        std::cout << "Invalid cell description.\n" << std::endl;
         return;
     }
     
     if (m_cellService.createCell(cellName, m_currentUserId, cellDescription))
     {
-        std::cout << "Cell " << cellName << " created successfuly!" << std::endl;
+        std::cout << "Cell " << cellName << " created successfully!\n" << std::endl;
     }
     else
     {
@@ -340,9 +338,7 @@ bool ConsoleUI::validatePassword(const std::string& password) const
 
 bool ConsoleUI::validateCellName(const std::string& cellName) const
 {
-    std::string trimmedName = StringUtils::trim(cellName);
-
-    if (!m_cellService.isCellNameValid(trimmedName))
+    if (!m_cellService.isCellNameValid(cellName))
     {
         std::cout << "Cell name must be between " << CellService::MIN_CELL_NAME_LENGTH << " and "
             << CellService::MAX_CELL_NAME_LENGTH << " characters.\n" << std::endl;
@@ -354,9 +350,7 @@ bool ConsoleUI::validateCellName(const std::string& cellName) const
 
 bool ConsoleUI::validateCellDescription(const std::string& cellDescription) const
 {
-        std::string trimmedDesc = StringUtils::trim(cellDescription);
-
-    if (!m_cellService.isDescriptionValid(trimmedDesc))
+    if (!m_cellService.isDescriptionValid(cellDescription))
     {
         std::cout << "Cell description must be between " << CellService::MIN_DESCRIPTION_LENGTH << " and "
             << CellService::MAX_DESCRIPTION_LENGTH << " characters.\n" << std::endl;
