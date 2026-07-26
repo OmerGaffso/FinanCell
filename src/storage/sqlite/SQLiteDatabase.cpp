@@ -68,6 +68,11 @@ std::uint64_t SQLiteDatabase::lastInsertId() const
     return static_cast<std::uint64_t>(id);
 }
 
+std::uint64_t SQLiteDatabase::changedRowCount() const
+{
+    return static_cast<std::uint64_t>(sqlite3_changes(m_database));
+}
+
 sqlite3* SQLiteDatabase::handle() const
 {
     return m_database;

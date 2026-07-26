@@ -16,6 +16,7 @@ public:
 
     void execute(const std::string& sql);
     std::uint64_t lastInsertId() const;
+    std::uint64_t changedRowCount() const;
     sqlite3* handle() const;
 
 private:
