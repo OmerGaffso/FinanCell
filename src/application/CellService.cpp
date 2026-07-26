@@ -100,7 +100,7 @@ CellOperationResult CellService::updateCell(
         cellId,
         trimmedName,
         trimmedDescription,
-        cell->getUsesCurrency(),
+        cell->getCurrency(),
         cell->getOwnerId())) ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 

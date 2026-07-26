@@ -4,6 +4,7 @@
 #include <string>
 
 #include "storage/sqlite/SQLiteStatement.h"
+#include "application/PersistenceError.h"
 
 namespace
 {
@@ -47,7 +48,7 @@ CellRole cellRoleFromText(const std::string& role)
         return CellRole::GUEST;
     }
 
-    throw std::runtime_error("Database contains an unknown cell role: " + role);
+    throw PersistenceError("Database contains an unknown cell role: " + role);
 }
 
 CellMember readMember(SQLiteStatement& statement)
@@ -74,7 +75,7 @@ std::optional<FinancialCell> SQLiteCellRepository::insertCell(
     SQLiteStatement statement(m_database, sql);
     statement.bindText(1, cell.getCellName());
     statement.bindText(2, cell.getCellDescription());
-    statement.bindText(3, cell.getUsesCurrency());
+    statement.bindText(3, cell.getCurrency());
     statement.bindUInt64(4, cell.getOwnerId());
     statement.execute();
 
@@ -82,7 +83,7 @@ std::optional<FinancialCell> SQLiteCellRepository::insertCell(
         m_database.lastInsertId(),
         cell.getCellName(),
         cell.getCellDescription(),
-        cell.getUsesCurrency(),
+        cell.getCurrency(),
         cell.getOwnerId());
 }
 
@@ -113,7 +114,7 @@ bool SQLiteCellRepository::updateCell(const FinancialCell& cell)
     SQLiteStatement statement(m_database, sql);
     statement.bindText(1, cell.getCellName());
     statement.bindText(2, cell.getCellDescription());
-    statement.bindText(3, cell.getUsesCurrency());
+    statement.bindText(3, cell.getCurrency());
     statement.bindUInt64(4, cell.getCellId());
     statement.execute();
     return m_database.changedRowCount() > 0;

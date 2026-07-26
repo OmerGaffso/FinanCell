@@ -1,29 +1,15 @@
 #include "application/TransactionService.h"
 
-#include <cctype>
-
 #include "utils/StringUtils.h"
-
-namespace
-{
-bool isLeapYear(int year)
-{
-    return year % 400 == 0 || (year % 4 == 0 && year % 100 != 0);
-}
-
-int daysInMonth(int year, int month)
-{
-    constexpr int days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    if (month == 2 && isLeapYear(year)) return 29;
-    return days[month - 1];
-}
-}
+#include "utils/DateUtils.h"
 
 TransactionService::TransactionService(
     TransactionRepository& transactionRepository,
-    CellRepository& cellRepository)
+    CellRepository& cellRepository,
+    CategoryRepository& categoryRepository)
     : m_transactionRepository(transactionRepository),
-      m_cellRepository(cellRepository)
+      m_cellRepository(cellRepository),
+      m_categoryRepository(categoryRepository)
 {
 }
 
@@ -34,18 +20,18 @@ std::optional<Transaction> TransactionService::addTransaction(
     const std::string& description,
     int64_t amountInMinorUnits,
     const std::string& occurredAt,
-    const std::string& category)
+    std::uint64_t categoryId)
 {
     const std::string trimmedDescription = StringUtils::trim(description);
-    const std::string trimmedCategory = StringUtils::trim(category);
     if (!canWrite(actingUserId, cellId) ||
-        !isValid(trimmedDescription, amountInMinorUnits, occurredAt, trimmedCategory))
+        !isValid(trimmedDescription, amountInMinorUnits, occurredAt) ||
+        !categoryBelongsToCell(categoryId, cellId))
     {
         return std::nullopt;
     }
     return m_transactionRepository.insertTransaction(Transaction(
         0, cellId, actingUserId, type, trimmedDescription, amountInMinorUnits,
-        occurredAt, trimmedCategory));
+        occurredAt, categoryId));
 }
 
 bool TransactionService::editTransaction(
@@ -56,15 +42,15 @@ bool TransactionService::editTransaction(
     const std::string& description,
     int64_t amountInMinorUnits,
     const std::string& occurredAt,
-    const std::string& category)
+    std::uint64_t categoryId)
 {
     const auto transaction = m_transactionRepository.findTransactionById(transactionId);
     const std::string trimmedDescription = StringUtils::trim(description);
-    const std::string trimmedCategory = StringUtils::trim(category);
-    const std::string effectiveCategory =
-        trimmedCategory.empty() && transaction ? transaction->getCategory() : trimmedCategory;
+    const std::uint64_t effectiveCategoryId =
+        categoryId == 0 && transaction ? transaction->getCategoryId() : categoryId;
     if (!transaction || transaction->getCellId() != cellId ||
-        !isValid(trimmedDescription, amountInMinorUnits, occurredAt, effectiveCategory))
+        !isValid(trimmedDescription, amountInMinorUnits, occurredAt) ||
+        !categoryBelongsToCell(effectiveCategoryId, cellId))
     {
         return false;
     }
@@ -84,7 +70,7 @@ bool TransactionService::editTransaction(
         trimmedDescription,
         amountInMinorUnits,
         occurredAt.empty() ? transaction->getOccurredAt() : occurredAt,
-        effectiveCategory));
+        effectiveCategoryId));
 }
 
 bool TransactionService::deleteTransaction(
@@ -142,35 +128,21 @@ bool TransactionService::canRead(uint64_t userId, uint64_t cellId) const
 bool TransactionService::isValid(
     const std::string& description,
     int64_t amountInMinorUnits,
-    const std::string& occurredAt,
-    const std::string& category) const
+    const std::string& occurredAt) const
 {
     return !description.empty() && description.length() <= MAX_DESCRIPTION_LENGTH &&
-           amountInMinorUnits > 0 && isDateValid(occurredAt) && isCategoryValid(category);
+           amountInMinorUnits > 0 && isDateValid(occurredAt);
 }
 
 bool TransactionService::isDateValid(const std::string& date)
 {
-    if (date.empty()) return true;
-    if (date.size() != 10 || date[4] != '-' || date[7] != '-') return false;
-    for (std::size_t index = 0; index < date.size(); ++index)
-    {
-        if (index != 4 && index != 7 &&
-            !std::isdigit(static_cast<unsigned char>(date[index])))
-        {
-            return false;
-        }
-    }
-
-    const int year = std::stoi(date.substr(0, 4));
-    const int month = std::stoi(date.substr(5, 2));
-    const int day = std::stoi(date.substr(8, 2));
-    return year >= 1 && month >= 1 && month <= 12 &&
-           day >= 1 && day <= daysInMonth(year, month);
+    return DateUtils::isIsoDateValid(date);
 }
 
-bool TransactionService::isCategoryValid(const std::string& category)
+bool TransactionService::categoryBelongsToCell(
+    std::uint64_t categoryId,
+    std::uint64_t cellId) const
 {
-    const std::string trimmed = StringUtils::trim(category);
-    return !trimmed.empty() && trimmed.length() <= 50;
+    const auto category = m_categoryRepository.findCategoryById(categoryId);
+    return category && category->getCellId() == cellId;
 }

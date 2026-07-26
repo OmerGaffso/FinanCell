@@ -1,11 +1,15 @@
+#include <limits>
 #include <stdexcept>
 #include <string>
 
 #include "application/CellService.h"
+#include "application/CategoryService.h"
+#include "application/MonthlyReportService.h"
 #include "application/TransactionService.h"
 #include "application/UserService.h"
 #include "security/PasswordHasher.h"
 #include "storage/sqlite/SQLiteCellRepository.h"
+#include "storage/sqlite/SQLiteCategoryRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteMigrations.h"
 #include "storage/sqlite/SQLiteTransactionRepository.h"
@@ -25,24 +29,33 @@ int main()
     SQLiteMigrations::apply(database);
     SQLiteUserRepository users(database);
     SQLiteCellRepository cells(database);
+    SQLiteCategoryRepository categories(database);
     SQLiteTransactionRepository transactions(database);
     CellService cellService(cells, users);
-    TransactionService transactionService(transactions, cells);
+    CategoryService categoryService(categories, cells);
+    TransactionService transactionService(transactions, cells, categories);
+    MonthlyReportService reportService(transactions, cells);
     SodiumPasswordHasher passwordHasher;
     UserService userService(users, passwordHasher);
 
-    require(users.insertUser("owner", "Cell Owner", "secret1"), "create owner");
-    require(users.insertUser("member", "Cell Member", "secret2"), "create member");
-    require(users.insertUser("guest", "Cell Guest", "secret3"), "create guest");
+    std::string ownerUsername = "owner";
+    std::string ownerName = "Cell Owner";
+    std::string ownerPassword = "secret1";
+    std::string memberUsername = "member";
+    std::string memberName = "Cell Member";
+    std::string memberPassword = "secret2";
+    std::string guestUsername = "guest";
+    std::string guestName = "Cell Guest";
+    std::string guestPassword = "secret3";
+    require(userService.createUser(ownerUsername, ownerName, ownerPassword), "create owner");
+    require(userService.createUser(memberUsername, memberName, memberPassword), "create member");
+    require(userService.createUser(guestUsername, guestName, guestPassword), "create guest");
     const auto owner = users.findUserByUsername("owner");
     const auto member = users.findUserByUsername("member");
     const auto guest = users.findUserByUsername("guest");
     require(owner && member && guest, "load users");
     require(userService.authenticateUser("owner", "secret1").has_value(),
-            "legacy plaintext login succeeds once");
-    require(passwordHasher.isEncodedHash(
-                users.findUserByUsername("owner")->getPasswordHash()),
-            "legacy password upgraded to Argon2id");
+            "hashed login succeeds");
     require(!userService.authenticateUser("owner", "wrong-password"),
             "invalid password rejected");
     std::string secureUsername = "secure";
@@ -65,6 +78,8 @@ int main()
     const uint64_t cellId = ownedCells.front().getCellId();
     require(cells.findMember(cellId, owner->getUserId())->role == CellRole::OWNER,
             "owner membership created");
+    require(categories.findCategoryByName(cellId, "General").has_value(),
+            "default category created with cell");
 
     require(cellService.addMemberToCell(
                 owner->getUserId(), cellId, member->getUserId(), CellRole::MEMBER) == CellOperationResult::SUCCESS,
@@ -95,16 +110,38 @@ int main()
                 owner->getUserId(), cellId, guest->getUserId(), CellRole::GUEST) == CellOperationResult::SUCCESS,
             "owner restores guest role");
 
+    require(categoryService.createCategory(
+                owner->getUserId(), cellId, " Salary ") == CategoryOperationResult::SUCCESS,
+            "owner creates category");
+    require(categoryService.createCategory(
+                member->getUserId(), cellId, "Food") == CategoryOperationResult::SUCCESS,
+            "member creates category");
+    require(categoryService.createCategory(
+                owner->getUserId(), cellId, "Kid's Food") == CategoryOperationResult::SUCCESS,
+            "prepared category insert accepts an apostrophe");
+    require(categoryService.createCategory(
+                owner->getUserId(), cellId, "salary") == CategoryOperationResult::ALREADY_EXISTS,
+            "category names are unique case-insensitively");
+    require(categoryService.createCategory(
+                guest->getUserId(), cellId, "Denied") == CategoryOperationResult::NOT_AUTHORIZED,
+            "guest cannot create categories");
+    require(categoryService.getCategoriesForCell(guest->getUserId(), cellId)->size() == 4,
+            "guest can list categories");
+    const auto salaryCategory = categories.findCategoryByName(cellId, "Salary");
+    const auto foodCategory = categories.findCategoryByName(cellId, "Food");
+    require(salaryCategory && foodCategory, "load managed categories");
+
     const auto income = transactionService.addTransaction(
         owner->getUserId(), cellId, TransactionType::INCOME, "Salary", 10000,
-        "2026-07-01", "Salary");
+        "2026-07-01", salaryCategory->getCategoryId());
     const auto expense = transactionService.addTransaction(
-        member->getUserId(), cellId, TransactionType::EXPENSE, "Food", 2500);
+        member->getUserId(), cellId, TransactionType::EXPENSE, "Food", 2500,
+        "2026-07-02", foodCategory->getCategoryId());
     require(income && expense, "owner and member add transactions");
-    require(income->getCategory() == "Salary", "transaction category persisted");
+    require(income->getCategoryName() == "Salary", "transaction category persisted");
     require(!transactionService.addTransaction(
                 owner->getUserId(), cellId, TransactionType::EXPENSE, "Bad date", 100,
-                "2026-02-29", "General"),
+                "2026-02-29", foodCategory->getCategoryId()),
             "invalid calendar date rejected");
     require(TransactionService::isDateValid("2024-02-29"),
             "valid leap date accepted");
@@ -114,8 +151,8 @@ int main()
             "malformed calendar dates rejected");
     require(!transactionService.addTransaction(
                 owner->getUserId(), cellId, TransactionType::EXPENSE, "Bad category", 100,
-                "2026-07-01", ""),
-            "empty category rejected");
+                "2026-07-01", 9999),
+            "unknown category rejected");
     require(transactionService.getTransactionsForCell(
                 owner->getUserId(), cellId, "2026-07-01", "2026-07-01")->size() == 1,
             "transactions filter by date");
@@ -129,41 +166,94 @@ int main()
                 users.findUserByUsername("secure")->getUserId(), cellId),
             "outsider cannot read transactions");
     require(!transactionService.addTransaction(
-                guest->getUserId(), cellId, TransactionType::EXPENSE, "Denied", 100),
+                guest->getUserId(), cellId, TransactionType::EXPENSE, "Denied", 100,
+                "", foodCategory->getCategoryId()),
             "guest cannot add transaction");
     require(!transactionService.editTransaction(
                 member->getUserId(), cellId, income->getTransactionId(),
-                TransactionType::INCOME, "Changed", 50000, "", "Salary"),
+                TransactionType::INCOME, "Changed", 50000, "", salaryCategory->getCategoryId()),
             "member cannot edit owner's transaction");
     require(transactionService.editTransaction(
                 owner->getUserId(), cellId, expense->getTransactionId(),
-                TransactionType::EXPENSE, "Groceries", 2000, "2026-07-02", "Food"),
+                TransactionType::EXPENSE, "Groceries", 2000, "2026-07-02", foodCategory->getCategoryId()),
             "owner edits any transaction");
     require(transactionService.editTransaction(
                 owner->getUserId(), cellId, income->getTransactionId(),
-                TransactionType::INCOME, "Salary revised", 10000, "", ""),
+                TransactionType::INCOME, "Salary revised", 10000, "", 0),
             "blank edit fields retain date and category");
-    require(transactions.findTransactionById(income->getTransactionId())->getCategory() == "Salary" &&
+    require(transactions.findTransactionById(income->getTransactionId())->getCategoryName() == "Salary" &&
                 transactions.findTransactionById(income->getTransactionId())->getOccurredAt() == "2026-07-01",
             "retained transaction fields remain unchanged");
-    require(transactions.findTransactionById(expense->getTransactionId())->getCategory() == "Food",
+    require(transactions.findTransactionById(expense->getTransactionId())->getCategoryName() == "Food",
             "transaction edit persists category");
     require(transactions.findTransactionById(expense->getTransactionId())->getOccurredAt() == "2026-07-02",
             "transaction edit persists date");
     require(transactionService.getCellBalance(owner->getUserId(), cellId) == 8000,
             "balance reflects transaction edit");
+    require(transactionService.addTransaction(
+                owner->getUserId(), cellId, TransactionType::EXPENSE, "Month end", 100,
+                "2026-07-31", foodCategory->getCategoryId()) &&
+                transactionService.addTransaction(
+                    owner->getUserId(), cellId, TransactionType::INCOME, "Previous month", 777,
+                    "2026-06-30", salaryCategory->getCategoryId()) &&
+                transactionService.addTransaction(
+                    owner->getUserId(), cellId, TransactionType::EXPENSE, "Next month", 888,
+                    "2026-08-01", foodCategory->getCategoryId()),
+            "create transactions around monthly report boundaries");
+    const auto report = reportService.generate(owner->getUserId(), cellId, "2026-07");
+    require(report && report->totalIncomeInMinorUnits == 10000 &&
+                report->totalExpensesInMinorUnits == 2100 &&
+                report->balanceInMinorUnits == 7900 && report->categories.size() == 2,
+            "monthly report contains totals, category breakdown, and exact month boundaries");
+    const auto emptyReport = reportService.generate(owner->getUserId(), cellId, "2024-02");
+    require(emptyReport && emptyReport->totalIncomeInMinorUnits == 0 &&
+                emptyReport->totalExpensesInMinorUnits == 0 &&
+                emptyReport->balanceInMinorUnits == 0 && emptyReport->categories.empty(),
+            "empty leap-month report contains zero totals");
+    require(!reportService.generate(owner->getUserId(), cellId, "2026-13") &&
+                !reportService.generate(
+                    users.findUserByUsername("secure")->getUserId(), cellId, "2026-07"),
+            "invalid and unauthorized reports are rejected");
 
     require(cellService.createCell("Travel Budget", owner->getUserId(), "Trips"),
             "create second cell");
     const uint64_t secondCellId = cellService.getCellsForUser(owner->getUserId()).back().getCellId();
+    require(categoryService.createCategory(
+                owner->getUserId(), secondCellId, "Travel") == CategoryOperationResult::SUCCESS,
+            "create category in second cell");
+    const auto travelCategory = categories.findCategoryByName(secondCellId, "Travel");
     const auto secondCellTransaction = transactionService.addTransaction(
         owner->getUserId(), secondCellId, TransactionType::EXPENSE, "Flight", 5000,
-        "2026-08-01", "Travel");
+        "2026-08-01", travelCategory->getCategoryId());
     require(secondCellTransaction.has_value(), "create transaction in second cell");
+    require(transactionService.addTransaction(
+                owner->getUserId(), secondCellId, TransactionType::INCOME, "Large one",
+                std::numeric_limits<std::int64_t>::max(), "2027-01-01",
+                travelCategory->getCategoryId()) &&
+                transactionService.addTransaction(
+                    owner->getUserId(), secondCellId, TransactionType::INCOME, "Large two",
+                    std::numeric_limits<std::int64_t>::max(), "2027-01-02",
+                    travelCategory->getCategoryId()),
+            "store individually valid large transactions");
+    bool reportOverflowDetected = false;
+    try
+    {
+        static_cast<void>(reportService.generate(
+            owner->getUserId(), secondCellId, "2027-01"));
+    }
+    catch (const std::overflow_error&)
+    {
+        reportOverflowDetected = true;
+    }
+    require(reportOverflowDetected, "monthly report detects integer overflow");
     require(!transactionService.editTransaction(
                 owner->getUserId(), cellId, secondCellTransaction->getTransactionId(),
-                TransactionType::EXPENSE, "Wrong cell", 1, "", "Travel"),
+                TransactionType::EXPENSE, "Wrong cell", 1, "", travelCategory->getCategoryId()),
             "transaction edit is scoped to selected cell");
+    require(!transactionService.addTransaction(
+                owner->getUserId(), cellId, TransactionType::EXPENSE, "Cross-cell", 1,
+                "2026-07-03", travelCategory->getCategoryId()),
+            "cross-cell category assignment rejected");
     require(!transactionService.deleteTransaction(
                 owner->getUserId(), cellId, secondCellTransaction->getTransactionId()),
             "transaction delete is scoped to selected cell");

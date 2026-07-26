@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <optional>
 #include <string>
-#include <vector>
 
 #include "application/UserRepository.h"
 #include "domain/User.h"
@@ -24,7 +23,7 @@ class UserService
         /** @brief Minimum accepted password length. */
         static constexpr std::size_t MIN_PASSWORD_LENGTH = 6;
         /** @brief Maximum accepted password length. */
-        static constexpr std::size_t MAX_PASSWORD_LENGTH = 18;
+        static constexpr std::size_t MAX_PASSWORD_LENGTH = 128;
 
         /** @brief Creates the service. @param userRepository User persistence. @param passwordHasher Password hashing provider. */
         UserService(UserRepository& userRepository, PasswordHasher& passwordHasher);
@@ -45,9 +44,6 @@ class UserService
         std::optional<User> findUserByUsername(const std::string& username) const;
         /** @brief Finds a user by ID. @param userId User ID. @return Matching user, or empty. */
         std::optional<User> findUserById(std::uint64_t userId) const;
-        /** @brief Returns every user. @return All users. */
-        std::vector<User> getUsers() const;
-
     private:
         UserRepository& m_userRepository;
         PasswordHasher& m_passwordHasher;

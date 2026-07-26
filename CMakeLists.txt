@@ -23,68 +23,65 @@ if(DOXYGEN_FOUND)
     )
 endif()
 
-add_executable(FinanCell 
-    src/main.cpp
-    src/ui/console/ConsoleUI.cpp
+set(FINANCELL_CORE_SOURCES
     src/domain/User.cpp
     src/domain/FinancialCell.cpp
     src/application/UserService.cpp
+    src/application/CategoryService.cpp
+    src/application/MonthlyReportService.cpp
     src/storage/sqlite/SQLiteDatabase.cpp
     src/storage/sqlite/SQLiteMigrations.cpp
     src/storage/sqlite/SQLiteStatement.cpp
     src/storage/sqlite/SQLiteUserRepository.cpp
     src/storage/sqlite/SQLiteCellRepository.cpp
+    src/storage/sqlite/SQLiteCategoryRepository.cpp
     src/storage/sqlite/SQLiteTransactionRepository.cpp
     src/application/CellService.cpp
     src/application/TransactionService.cpp
     src/utils/StringUtils.cpp
+    src/utils/DateUtils.cpp
     src/security/PasswordHasher.cpp
 )
 
-target_include_directories(FinanCell
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+add_library(FinanCellCore STATIC ${FINANCELL_CORE_SOURCES})
+target_include_directories(FinanCellCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(FinanCellCore PUBLIC SQLite::SQLite3 PRIVATE ${SODIUM_LIBRARY})
 
-target_link_libraries(FinanCell
-    PRIVATE
-    SQLite::SQLite3
-    ${SODIUM_LIBRARY}
-)
+add_library(FinanCellConsoleUI STATIC src/ui/console/ConsoleUI.cpp)
+target_include_directories(FinanCellConsoleUI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(FinanCellConsoleUI PUBLIC FinanCellCore)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(FinanCell
-        PRIVATE
-        -Wall
-        -Wextra
-        -Wpedantic
-        )
-endif()
+add_executable(FinanCell src/main.cpp)
+target_link_libraries(FinanCell PRIVATE FinanCellConsoleUI)
+
+function(financell_enable_warnings target)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
+    elseif(MSVC)
+        target_compile_options(${target} PRIVATE /W4)
+    endif()
+endfunction()
+
+financell_enable_warnings(FinanCellCore)
+financell_enable_warnings(FinanCellConsoleUI)
+financell_enable_warnings(FinanCell)
 
 if(BUILD_TESTING)
     add_executable(FinanCellTests
         tests/CellOperationsTests.cpp
-        src/domain/User.cpp
-        src/domain/FinancialCell.cpp
-        src/application/UserService.cpp
-        src/application/CellService.cpp
-        src/application/TransactionService.cpp
-        src/storage/sqlite/SQLiteDatabase.cpp
-        src/storage/sqlite/SQLiteMigrations.cpp
-        src/storage/sqlite/SQLiteStatement.cpp
-        src/storage/sqlite/SQLiteUserRepository.cpp
-        src/storage/sqlite/SQLiteCellRepository.cpp
-        src/storage/sqlite/SQLiteTransactionRepository.cpp
-        src/utils/StringUtils.cpp
-        src/security/PasswordHasher.cpp
     )
-
-    target_include_directories(FinanCellTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-    target_link_libraries(FinanCellTests PRIVATE SQLite::SQLite3 ${SODIUM_LIBRARY})
-
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(FinanCellTests PRIVATE -Wall -Wextra -Wpedantic)
-    endif()
+    target_link_libraries(FinanCellTests PRIVATE FinanCellCore)
+    financell_enable_warnings(FinanCellTests)
 
     add_test(NAME CellOperations COMMAND FinanCellTests)
+
+    add_executable(FinanCellPersistenceTests tests/PersistenceAndMigrationTests.cpp)
+    target_link_libraries(FinanCellPersistenceTests PRIVATE FinanCellCore)
+    financell_enable_warnings(FinanCellPersistenceTests)
+    add_test(NAME PersistenceAndMigration COMMAND FinanCellPersistenceTests)
+
+    add_executable(FinanCellConsoleTests tests/ConsoleFlowTests.cpp)
+    target_link_libraries(FinanCellConsoleTests PRIVATE FinanCellConsoleUI)
+    financell_enable_warnings(FinanCellConsoleTests)
+    add_test(NAME ConsoleFlow COMMAND FinanCellConsoleTests)
 endif()

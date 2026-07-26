@@ -9,18 +9,22 @@ integer minor units for exact monetary calculations.
 - Account registration and login with normalized usernames and hashed passwords.
 - Financial-cell creation, listing, selection, editing, and deletion.
 - Owner-managed membership with `OWNER`, `MEMBER`, and read-only `GUEST` roles.
+- Managed, reusable categories scoped to each financial cell.
 - Income and expense CRUD with descriptions, exact amounts, calendar dates, and
-  categories.
+  category references.
 - Authorized transaction listing and date-range filtering.
 - Cell balances plus monthly income, expense, net, and category summaries.
 - Versioned SQLite migrations and cascading cleanup when a cell is deleted.
 - Console validation, password hiding, and confirmations for destructive actions.
+- File-backed persistence, migration, reporting, and console-flow tests.
 
 ## Roles
 
 | Capability | Owner | Member | Guest |
 | --- | :---: | :---: | :---: |
 | View cells, members, transactions, and reports | Yes | Yes | Yes |
+| View categories | Yes | Yes | Yes |
+| Create categories | Yes | Yes | No |
 | Add transactions | Yes | Yes | No |
 | Edit or delete own transactions | Yes | Yes | No |
 | Edit or delete any transaction in the cell | Yes | No | No |
@@ -49,6 +53,10 @@ cmake --build build
 ```
 
 The application creates its database at `data/financell.db`.
+
+Passwords are stored only as libsodium Argon2 hashes. Databases from early
+development builds that stored plaintext passwords require account recreation;
+plaintext fallback authentication is intentionally not supported.
 
 ## Test
 

@@ -4,6 +4,8 @@
 #include <optional>
 
 #include "application/CellService.h"
+#include "application/CategoryService.h"
+#include "application/MonthlyReportService.h"
 #include "application/TransactionService.h"
 #include "application/UserService.h"
 
@@ -11,14 +13,25 @@
 class ConsoleUI
 {
 public:
-    /** @brief Creates the UI. @param userService User service. @param cellService Cell service. @param transactionService Transaction service. */
+    /**
+     * @brief Creates the UI.
+     * @param userService User service.
+     * @param cellService Cell service.
+     * @param categoryService Category service.
+     * @param transactionService Transaction service.
+     * @param monthlyReportService Monthly report service.
+     */
     ConsoleUI(
         UserService& userService,
         CellService& cellService,
-        TransactionService& transactionService)
+        CategoryService& categoryService,
+        TransactionService& transactionService,
+        MonthlyReportService& monthlyReportService)
         : m_userService(userService),
           m_cellService(cellService),
-          m_transactionService(transactionService)
+          m_categoryService(categoryService),
+          m_transactionService(transactionService),
+          m_monthlyReportService(monthlyReportService)
     {
     }
     /** @brief Runs the menu loop until exit or EOF. */
@@ -29,8 +42,6 @@ private:
     void createAccount();
     /** @brief Prompts for credentials and logs in. */
     void login();
-    /** @brief Prints users for diagnostics. */
-    void printUsers() const;
     /** @brief Prints cells accessible to the current user. */
     void printCells() const;
     /** @brief Prints members of the selected cell. */
@@ -53,8 +64,14 @@ private:
     void editTransaction();
     /** @brief Deletes a transaction. */
     void deleteTransaction();
-    /** @brief Prints balances and financial summaries. */
-    void printCellBalance();
+    /** @brief Generates and prints the required monthly report. */
+    void printMonthlyReport();
+    /** @brief Lists categories in the selected cell. */
+    void printCategories() const;
+    /** @brief Creates a category in the selected cell. */
+    void createCategory();
+    /** @brief Runs a category-management action. */
+    void manageCategories();
     /** @brief Prints the unauthenticated menu. */
     void displayMainMenu() const;
     /** @brief Prints the authenticated user menu. */
@@ -71,6 +88,8 @@ private:
     bool readPassword(const std::string& prompt, std::string& password) const;
     /** @brief Reads a positive ID. @param prompt Prompt text. @param value Parsed ID. @return True when valid. */
     bool readId(const std::string& prompt, std::uint64_t& value) const;
+    /** @brief Reads a positive ID or blank as zero. @param prompt Prompt text. @param value Parsed ID or zero. @return True when valid. */
+    bool readOptionalId(const std::string& prompt, std::uint64_t& value) const;
     /** @brief Reads a cell role. @param role Parsed role. @return True when valid. */
     bool readRole(CellRole& role) const;
     /** @brief Reads a transaction type. @param type Parsed type. @return True when valid. */
@@ -101,7 +120,9 @@ private:
 
     UserService& m_userService;
     CellService& m_cellService;
+    CategoryService& m_categoryService;
     TransactionService& m_transactionService;
+    MonthlyReportService& m_monthlyReportService;
     std::uint64_t m_currentUserId = 0; // Track the current user ID
     std::uint64_t m_currentCellId = 0;
 };

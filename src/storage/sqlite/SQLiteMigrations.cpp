@@ -25,6 +25,13 @@ void setVersion(SQLiteDatabase& database, unsigned int version)
     database.execute("PRAGMA user_version = " + std::to_string(version) + ";");
 }
 
+std::uint64_t countRows(SQLiteDatabase& database, const std::string& table)
+{
+    SQLiteStatement statement(database, "SELECT COUNT(*) FROM " + table + ";");
+    if (!statement.next()) throw std::runtime_error("SQLite did not return a row count.");
+    return statement.columnUInt64(0);
+}
+
 template <typename Migration>
 void applyMigration(
     SQLiteDatabase& database,
@@ -109,6 +116,30 @@ void SQLiteMigrations::apply(SQLiteDatabase& database)
         applyMigration(database, 4, [&database]
         {
             database.execute(Schema::ADD_TRANSACTION_CATEGORY);
+        });
+        version = 4;
+    }
+
+    if (version < 5)
+    {
+        applyMigration(database, 5, [&database]
+        {
+            database.execute(Schema::CREATE_CATEGORIES_TABLE);
+            database.execute(Schema::BACKFILL_DEFAULT_CATEGORIES);
+            database.execute(Schema::BACKFILL_TRANSACTION_CATEGORIES);
+            database.execute(Schema::CREATE_TRANSACTIONS_V5_TABLE);
+            database.execute(Schema::COPY_TRANSACTIONS_TO_V5);
+            if (countRows(database, "transactions") !=
+                countRows(database, "transactions_v5"))
+            {
+                throw std::runtime_error(
+                    "Category migration did not preserve every transaction.");
+            }
+            database.execute(Schema::DROP_LEGACY_TRANSACTIONS);
+            database.execute(Schema::RENAME_TRANSACTIONS_V5);
+            database.execute(Schema::CREATE_TRANSACTIONS_CELL_INDEX);
+            database.execute(Schema::CREATE_DEFAULT_CATEGORY_TRIGGER);
+            database.execute(Schema::CREATE_TRANSACTION_CREATOR_MEMBERSHIP_TRIGGER);
         });
     }
 }

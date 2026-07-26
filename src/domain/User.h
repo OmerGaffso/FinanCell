@@ -7,10 +7,8 @@
 class User
 {
     public:
-        /** @brief Constructs a transient user. @param username Username. @param displayName Display name. @param password Password value. */
-        User(const std::string& username, const std::string& displayName, const std::string& password);
-        /** @brief Constructs a persisted user. @param userId User ID. @param username Username. @param displayName Display name. @param password Stored password hash. */
-        User(std::uint64_t userId, const std::string& username, const std::string& displayName, const std::string& password);
+        /** @brief Constructs a persisted user. @param userId User ID. @param username Username. @param displayName Display name. @param passwordHash Stored password hash. */
+        User(std::uint64_t userId, const std::string& username, const std::string& displayName, const std::string& passwordHash);
         /** @brief Returns the username. @return Username. */
         std::string getUsername() const;
         /** @brief Returns the display name. @return Display name. */

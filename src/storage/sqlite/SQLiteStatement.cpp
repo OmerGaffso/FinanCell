@@ -3,6 +3,8 @@
 #include <limits>
 #include <stdexcept>
 
+#include "application/PersistenceError.h"
+
 SQLiteStatement::SQLiteStatement(
     SQLiteDatabase& database,
     const std::string& sql)
@@ -44,7 +46,7 @@ void SQLiteStatement::bindUInt64(int index, std::uint64_t value)
 
     if (value > maxSQLiteInteger)
     {
-        throw std::overflow_error("ID is too large for a SQLite INTEGER.");
+        throw PersistenceError("ID is too large for a SQLite INTEGER.");
     }
 
     if (sqlite3_bind_int64(
@@ -102,7 +104,7 @@ std::uint64_t SQLiteStatement::columnUInt64(int column) const
     const sqlite3_int64 value = sqlite3_column_int64(m_statement, column);
     if (value < 0)
     {
-        throw std::runtime_error("SQLite returned a negative ID.");
+        throw PersistenceError("SQLite returned a negative ID.");
     }
 
     return static_cast<std::uint64_t>(value);
@@ -115,6 +117,6 @@ std::int64_t SQLiteStatement::columnInt64(int column) const
 
 void SQLiteStatement::throwDatabaseError(const std::string& context) const
 {
-    throw std::runtime_error(
+    throw PersistenceError(
         context + ": " + std::string(sqlite3_errmsg(m_database.handle())));
 }

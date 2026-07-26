@@ -22,11 +22,6 @@ public:
     std::optional<User> findUserById(std::uint64_t userId) const override;
     /** @copydoc UserRepository::findUserByUsername */
     std::optional<User> findUserByUsername(const std::string& username) const override;
-    /** @copydoc UserRepository::updatePasswordHash */
-    bool updatePasswordHash(std::uint64_t userId, const std::string& passwordHash) override;
-    /** @copydoc UserRepository::findAllUsers */
-    std::vector<User> findAllUsers() const override;
-
 private:
     SQLiteDatabase& m_database;
 };

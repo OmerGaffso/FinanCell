@@ -1,8 +1,8 @@
 #include "storage/sqlite/SQLiteDatabase.h"
 
-#include <stdexcept>
-
 #include <sqlite3.h>
+
+#include "application/PersistenceError.h"
 
 SQLiteDatabase::SQLiteDatabase(const std::string& filePath)
 {
@@ -24,9 +24,17 @@ SQLiteDatabase::SQLiteDatabase(const std::string& filePath)
             m_database = nullptr;
         }
 
-        throw std::runtime_error(errorMessage);
+        throw PersistenceError(errorMessage);
     }
 
+    if (sqlite3_busy_timeout(m_database, 3000) != SQLITE_OK)
+    {
+        const std::string message =
+            "Failed to configure database timeout: " + std::string(sqlite3_errmsg(m_database));
+        sqlite3_close(m_database);
+        m_database = nullptr;
+        throw PersistenceError(message);
+    }
     execute("PRAGMA foreign_keys = ON;");
 }
 
@@ -34,7 +42,7 @@ SQLiteDatabase::~SQLiteDatabase()
 {
     if (m_database)
     {
-        sqlite3_close(m_database);
+        sqlite3_close_v2(m_database);
     }
 }
 
@@ -53,7 +61,7 @@ void SQLiteDatabase::execute(const std::string& sql)
             sqlite3_free(sqliteError);
         }
 
-        throw std::runtime_error(errorMessage);
+        throw PersistenceError(errorMessage);
     }
 }
 
@@ -62,7 +70,7 @@ std::uint64_t SQLiteDatabase::lastInsertId() const
     const sqlite3_int64 id = sqlite3_last_insert_rowid(m_database);
     if (id < 0)
     {
-        throw std::runtime_error("SQLite returned a negative row ID.");
+        throw PersistenceError("SQLite returned a negative row ID.");
     }
 
     return static_cast<std::uint64_t>(id);

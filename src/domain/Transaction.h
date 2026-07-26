@@ -24,7 +24,8 @@ public:
      * @param description Transaction description.
      * @param amountInMinorUnits Positive amount in minor units.
      * @param occurredAt Date or timestamp.
-     * @param category Reporting category.
+     * @param categoryId Reporting category ID.
+     * @param categoryName Reporting category name loaded from persistence.
      */
     Transaction(
         uint64_t transactionId,
@@ -34,7 +35,8 @@ public:
         std::string description,
         int64_t amountInMinorUnits,
         std::string occurredAt = "",
-        std::string category = "General")
+        uint64_t categoryId = 0,
+        std::string categoryName = "")
         : m_transactionId(transactionId),
           m_cellId(cellId),
           m_userId(userId),
@@ -42,7 +44,8 @@ public:
           m_description(std::move(description)),
           m_amountInMinorUnits(amountInMinorUnits),
           m_occurredAt(std::move(occurredAt)),
-          m_category(std::move(category))
+          m_categoryId(categoryId),
+          m_categoryName(std::move(categoryName))
     {
     }
 
@@ -60,8 +63,10 @@ public:
     int64_t getAmountInMinorUnits() const { return m_amountInMinorUnits; }
     /** @brief Returns the occurrence date. @return Stored date or timestamp. */
     const std::string& getOccurredAt() const { return m_occurredAt; }
-    /** @brief Returns the category. @return Reporting category. */
-    const std::string& getCategory() const { return m_category; }
+    /** @brief Returns the category ID. @return Reporting category ID. */
+    uint64_t getCategoryId() const { return m_categoryId; }
+    /** @brief Returns the category name. @return Reporting category name. */
+    const std::string& getCategoryName() const { return m_categoryName; }
 
 private:
     uint64_t m_transactionId;
@@ -71,5 +76,6 @@ private:
     std::string m_description;
     int64_t m_amountInMinorUnits;
     std::string m_occurredAt;
-    std::string m_category;
+    uint64_t m_categoryId;
+    std::string m_categoryName;
 };

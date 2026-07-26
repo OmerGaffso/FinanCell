@@ -51,17 +51,9 @@ std::optional<User> UserService::authenticateUser(
     }
 
     const std::string& stored = user->getPasswordHash();
-    if (m_passwordHasher.isEncodedHash(stored))
-    {
-        if (!m_passwordHasher.verify(password, stored)) return std::nullopt;
-    }
-    else
-    {
-        // Upgrade development databases that still contain pre-hashing values:
-        // accept a matching legacy password once, then replace it with Argon2id.
-        if (stored != password) return std::nullopt;
-        m_userRepository.updatePasswordHash(user->getUserId(), m_passwordHasher.hash(password));
-    }
+    if (!m_passwordHasher.isEncodedHash(stored) ||
+        !m_passwordHasher.verify(password, stored))
+        return std::nullopt;
 
     return user;
 }
@@ -100,9 +92,4 @@ bool UserService::isPasswordLengthValid(const std::string& password) const
 {
     const std::size_t length = password.length();
     return length >= MIN_PASSWORD_LENGTH && length <= MAX_PASSWORD_LENGTH;
-}
-
-std::vector<User> UserService::getUsers() const
-{
-    return m_userRepository.findAllUsers();
 }

@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "storage/sqlite/SQLiteStatement.h"
+#include "application/PersistenceError.h"
 
 namespace
 {
@@ -22,7 +23,7 @@ TransactionType transactionTypeFromText(const std::string& type)
 {
     if (type == "INCOME") return TransactionType::INCOME;
     if (type == "EXPENSE") return TransactionType::EXPENSE;
-    throw std::runtime_error("Database contains an unknown transaction type: " + type);
+    throw PersistenceError("Database contains an unknown transaction type: " + type);
 }
 
 Transaction readTransaction(SQLiteStatement& statement)
@@ -35,7 +36,8 @@ Transaction readTransaction(SQLiteStatement& statement)
         statement.columnText(4),
         statement.columnInt64(5),
         statement.columnText(6),
-        statement.columnText(7));
+        statement.columnUInt64(7),
+        statement.columnText(8));
 }
 }
 
@@ -49,7 +51,7 @@ std::optional<Transaction> SQLiteTransactionRepository::insertTransaction(
 {
     constexpr char sql[] =
         "INSERT INTO transactions "
-        "(cell_id, created_by_user_id, type, description, amount_minor, occurred_at, category) "
+        "(cell_id, created_by_user_id, type, description, amount_minor, occurred_at, category_id) "
         // Let SQLite generate the timestamp when the UI supplies an empty date.
         "VALUES (?, ?, ?, ?, ?, COALESCE(NULLIF(?, ''), CURRENT_TIMESTAMP), ?);";
 
@@ -60,7 +62,7 @@ std::optional<Transaction> SQLiteTransactionRepository::insertTransaction(
     statement.bindText(4, transaction.getDescription());
     statement.bindInt64(5, transaction.getAmountInMinorUnits());
     statement.bindText(6, transaction.getOccurredAt());
-    statement.bindText(7, transaction.getCategory());
+    statement.bindUInt64(7, transaction.getCategoryId());
     statement.execute();
     return findTransactionById(m_database.lastInsertId());
 }
@@ -69,8 +71,10 @@ std::optional<Transaction> SQLiteTransactionRepository::findTransactionById(
     uint64_t transactionId) const
 {
     constexpr char sql[] =
-        "SELECT id, cell_id, created_by_user_id, type, description, "
-        "amount_minor, occurred_at, category FROM transactions WHERE id = ?;";
+        "SELECT t.id, t.cell_id, t.created_by_user_id, t.type, t.description, "
+        "t.amount_minor, t.occurred_at, c.id, c.name "
+        "FROM transactions t JOIN categories c "
+        "ON c.id = t.category_id AND c.cell_id = t.cell_id WHERE t.id = ?;";
     SQLiteStatement statement(m_database, sql);
     statement.bindUInt64(1, transactionId);
     if (!statement.next()) return std::nullopt;
@@ -81,9 +85,11 @@ std::vector<Transaction> SQLiteTransactionRepository::findTransactionsByCellId(
     uint64_t cellId) const
 {
     constexpr char sql[] =
-        "SELECT id, cell_id, created_by_user_id, type, description, "
-        "amount_minor, occurred_at, category FROM transactions "
-        "WHERE cell_id = ? ORDER BY occurred_at, id;";
+        "SELECT t.id, t.cell_id, t.created_by_user_id, t.type, t.description, "
+        "t.amount_minor, t.occurred_at, c.id, c.name "
+        "FROM transactions t JOIN categories c "
+        "ON c.id = t.category_id AND c.cell_id = t.cell_id "
+        "WHERE t.cell_id = ? ORDER BY t.occurred_at, t.id;";
     SQLiteStatement statement(m_database, sql);
     statement.bindUInt64(1, cellId);
     std::vector<Transaction> transactions;
@@ -97,10 +103,12 @@ std::vector<Transaction> SQLiteTransactionRepository::findTransactionsByDateRang
     const std::string& toDate) const
 {
     constexpr char sql[] =
-        "SELECT id, cell_id, created_by_user_id, type, description, amount_minor, "
-        "occurred_at, category FROM transactions WHERE cell_id = ? "
-        "AND date(occurred_at) >= date(?) AND date(occurred_at) <= date(?) "
-        "ORDER BY occurred_at, id;";
+        "SELECT t.id, t.cell_id, t.created_by_user_id, t.type, t.description, "
+        "t.amount_minor, t.occurred_at, c.id, c.name "
+        "FROM transactions t JOIN categories c "
+        "ON c.id = t.category_id AND c.cell_id = t.cell_id "
+        "WHERE t.cell_id = ? AND date(t.occurred_at) >= date(?) "
+        "AND date(t.occurred_at) <= date(?) ORDER BY t.occurred_at, t.id;";
     SQLiteStatement statement(m_database, sql);
     statement.bindUInt64(1, cellId);
     statement.bindText(2, fromDate);
@@ -114,14 +122,14 @@ bool SQLiteTransactionRepository::updateTransaction(const Transaction& transacti
 {
     constexpr char sql[] =
         "UPDATE transactions SET type = ?, description = ?, amount_minor = ?, "
-        "occurred_at = COALESCE(NULLIF(?, ''), occurred_at), category = ?, "
+        "occurred_at = COALESCE(NULLIF(?, ''), occurred_at), category_id = ?, "
         "updated_at = CURRENT_TIMESTAMP WHERE id = ?;";
     SQLiteStatement statement(m_database, sql);
     statement.bindText(1, transactionTypeToText(transaction.getType()));
     statement.bindText(2, transaction.getDescription());
     statement.bindInt64(3, transaction.getAmountInMinorUnits());
     statement.bindText(4, transaction.getOccurredAt());
-    statement.bindText(5, transaction.getCategory());
+    statement.bindUInt64(5, transaction.getCategoryId());
     statement.bindUInt64(6, transaction.getTransactionId());
     statement.execute();
     return m_database.changedRowCount() > 0;

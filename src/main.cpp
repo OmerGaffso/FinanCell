@@ -4,6 +4,7 @@
 
 #include "ui/console/ConsoleUI.h"
 #include "storage/sqlite/SQLiteCellRepository.h"
+#include "storage/sqlite/SQLiteCategoryRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteMigrations.h"
 #include "storage/sqlite/SQLiteTransactionRepository.h"
@@ -24,10 +25,19 @@ int main()
         UserService userService{userRepository, passwordHasher};
         SQLiteCellRepository cellRepository(database);
         CellService cellService{cellRepository, userRepository};
+        SQLiteCategoryRepository categoryRepository(database);
+        CategoryService categoryService{categoryRepository, cellRepository};
         SQLiteTransactionRepository transactionRepository(database);
-        TransactionService transactionService{transactionRepository, cellRepository};
+        TransactionService transactionService{
+            transactionRepository, cellRepository, categoryRepository};
+        MonthlyReportService monthlyReportService{transactionRepository, cellRepository};
 
-        ConsoleUI ui{userService, cellService, transactionService};
+        ConsoleUI ui{
+            userService,
+            cellService,
+            categoryService,
+            transactionService,
+            monthlyReportService};
         ui.runApp();
     }
     catch (const std::exception& e)

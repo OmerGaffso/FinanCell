@@ -76,36 +76,3 @@ std::optional<User> SQLiteUserRepository::findUserByUsername(
         statement.columnText(2),
         statement.columnText(3));
 }
-
-bool SQLiteUserRepository::updatePasswordHash(
-    std::uint64_t userId,
-    const std::string& passwordHash)
-{
-    SQLiteStatement statement(
-        m_database, "UPDATE users SET password_hash = ? WHERE id = ?;");
-    statement.bindText(1, passwordHash);
-    statement.bindUInt64(2, userId);
-    statement.execute();
-    return m_database.changedRowCount() > 0;
-}
-
-std::vector<User> SQLiteUserRepository::findAllUsers() const
-{
-    constexpr char sql[] =
-        "SELECT id, username, display_name, password_hash "
-        "FROM users ORDER BY id;";
-
-    SQLiteStatement statement(m_database, sql);
-    std::vector<User> users;
-
-    while (statement.next())
-    {
-        users.emplace_back(
-            statement.columnUInt64(0),
-            statement.columnText(1),
-            statement.columnText(2),
-            statement.columnText(3));
-    }
-
-    return users;
-}

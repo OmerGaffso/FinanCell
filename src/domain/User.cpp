@@ -1,14 +1,14 @@
 #include "domain/User.h"
 
-User::User(const std::string& username, const std::string& displayName, const std::string& password)
-    :m_username(username), m_displayName(displayName), m_passwordHash(password)
-{
-    static std::uint64_t nextUserId = 1; // Static variable to keep track of the next user ID
-    m_userId = nextUserId++; // Assign the current value and then increment for the
-}
-
-User::User(std::uint64_t userId, const std::string& username, const std::string& displayName, const std::string& password)
-    : m_username(username), m_displayName(displayName), m_userId(userId), m_passwordHash(password)
+User::User(
+    std::uint64_t userId,
+    const std::string& username,
+    const std::string& displayName,
+    const std::string& passwordHash)
+    : m_username(username),
+      m_displayName(displayName),
+      m_userId(userId),
+      m_passwordHash(passwordHash)
 {
 }
 
