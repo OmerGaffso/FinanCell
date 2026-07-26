@@ -14,6 +14,8 @@ public:
 
     virtual std::optional<FinancialCell> insertCell(const FinancialCell& cell) = 0;
     virtual std::optional<FinancialCell> findCellById(std::uint64_t cellId) const = 0;
+    virtual bool updateCell(const FinancialCell& cell) = 0;
+    virtual bool deleteCell(std::uint64_t cellId) = 0;
     virtual std::vector<FinancialCell> findCellsByOwnerId(
         std::uint64_t ownerId) const = 0;
     virtual std::vector<FinancialCell> findAllCells() const = 0;

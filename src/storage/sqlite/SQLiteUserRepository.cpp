@@ -34,6 +34,27 @@ bool SQLiteUserRepository::userExists(const std::string& username) const
     return statement.next();
 }
 
+std::optional<User> SQLiteUserRepository::findUserById(
+    std::uint64_t userId) const
+{
+    constexpr char sql[] =
+        "SELECT id, username, display_name, password_hash "
+        "FROM users WHERE id = ?;";
+
+    SQLiteStatement statement(m_database, sql);
+    statement.bindUInt64(1, userId);
+    if (!statement.next())
+    {
+        return std::nullopt;
+    }
+
+    return User(
+        statement.columnUInt64(0),
+        statement.columnText(1),
+        statement.columnText(2),
+        statement.columnText(3));
+}
+
 std::optional<User> SQLiteUserRepository::findUserByUsername(
     const std::string& username) const
 {

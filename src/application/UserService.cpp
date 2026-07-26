@@ -41,6 +41,12 @@ std::optional<User> UserService::authenticateUser(
     return user;
 }
 
+std::optional<User> UserService::findUserByUsername(
+    const std::string& username) const
+{
+    return m_userRepository.findUserByUsername(StringUtils::normalize(username));
+}
+
 bool UserService::userExists(const std::string& username) const
 {
     const std::string normalizedUsername = StringUtils::normalize(username);

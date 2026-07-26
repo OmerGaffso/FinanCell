@@ -104,6 +104,29 @@ std::optional<FinancialCell> SQLiteCellRepository::findCellById(
     return readCell(statement);
 }
 
+bool SQLiteCellRepository::updateCell(const FinancialCell& cell)
+{
+    constexpr char sql[] =
+        "UPDATE cells SET name = ?, description = ?, currency = ? "
+        "WHERE id = ?;";
+
+    SQLiteStatement statement(m_database, sql);
+    statement.bindText(1, cell.getCellName());
+    statement.bindText(2, cell.getCellDescription());
+    statement.bindText(3, cell.getUsesCurrency());
+    statement.bindUInt64(4, cell.getCellId());
+    statement.execute();
+    return m_database.changedRowCount() > 0;
+}
+
+bool SQLiteCellRepository::deleteCell(std::uint64_t cellId)
+{
+    SQLiteStatement statement(m_database, "DELETE FROM cells WHERE id = ?;");
+    statement.bindUInt64(1, cellId);
+    statement.execute();
+    return m_database.changedRowCount() > 0;
+}
+
 std::vector<FinancialCell> SQLiteCellRepository::findCellsByOwnerId(
     std::uint64_t ownerId) const
 {

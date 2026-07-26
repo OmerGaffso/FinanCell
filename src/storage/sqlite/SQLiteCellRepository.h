@@ -12,6 +12,8 @@ public:
         const FinancialCell& cell) override;
     std::optional<FinancialCell> findCellById(
         std::uint64_t cellId) const override;
+    bool updateCell(const FinancialCell& cell) override;
+    bool deleteCell(std::uint64_t cellId) override;
     std::vector<FinancialCell> findCellsByOwnerId(
         std::uint64_t ownerId) const override;
     std::vector<FinancialCell> findAllCells() const override;

@@ -26,6 +26,7 @@ class UserService
         bool isPasswordLengthValid(const std::string& password) const;
 
         std::optional<User> authenticateUser(const std::string& username, const std::string& password) const;
+        std::optional<User> findUserByUsername(const std::string& username) const;
         std::vector<User> getUsers() const;
 
     private:
