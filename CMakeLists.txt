@@ -17,6 +17,7 @@ add_executable(FinanCell
     src/domain/FinancialCell.cpp
     src/application/UserService.cpp
     src/storage/sqlite/SQLiteDatabase.cpp
+    src/storage/sqlite/SQLiteMigrations.cpp
     src/storage/sqlite/SQLiteStatement.cpp
     src/storage/sqlite/SQLiteUserRepository.cpp
     src/storage/sqlite/SQLiteCellRepository.cpp
