@@ -87,5 +87,18 @@ void SQLiteMigrations::apply(SQLiteDatabase& database)
                 database.execute(Schema::CREATE_CELL_OWNER_MEMBERSHIP_TRIGGER);
                 database.execute(Schema::BACKFILL_CELL_OWNER_MEMBERSHIPS);
             });
+        version = 2;
+    }
+
+    if (version < 3)
+    {
+        applyMigration(
+            database,
+            3,
+            [&database]
+            {
+                database.execute(Schema::CREATE_TRANSACTIONS_TABLE);
+                database.execute(Schema::CREATE_TRANSACTIONS_CELL_INDEX);
+            });
     }
 }

@@ -61,4 +61,27 @@ INSERT OR IGNORE INTO cell_members (cell_id, user_id, role)
 SELECT id, owner_user_id, 'OWNER'
 FROM cells;
 )sql";
+
+inline constexpr char CREATE_TRANSACTIONS_TABLE[] = R"sql(
+CREATE TABLE IF NOT EXISTS transactions (
+    id                  INTEGER PRIMARY KEY,
+    cell_id             INTEGER NOT NULL,
+    created_by_user_id  INTEGER NOT NULL,
+    type                TEXT NOT NULL
+                        CHECK(type IN ('INCOME', 'EXPENSE')),
+    description         TEXT NOT NULL
+                        CHECK(length(description) BETWEEN 1 AND 200),
+    amount_minor        INTEGER NOT NULL CHECK(amount_minor > 0),
+    occurred_at         TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at          TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cell_id) REFERENCES cells(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by_user_id) REFERENCES users(id)
+);
+)sql";
+
+inline constexpr char CREATE_TRANSACTIONS_CELL_INDEX[] = R"sql(
+CREATE INDEX IF NOT EXISTS idx_transactions_cell_date
+ON transactions(cell_id, occurred_at, id);
+)sql";
 }
