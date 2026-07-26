@@ -45,6 +45,8 @@ std::optional<User> UserService::authenticateUser(
     }
     else
     {
+        // Upgrade development databases that still contain pre-hashing values:
+        // accept a matching legacy password once, then replace it with Argon2id.
         if (stored != password) return std::nullopt;
         m_userRepository.updatePasswordHash(user->getUserId(), m_passwordHasher.hash(password));
     }

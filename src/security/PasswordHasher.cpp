@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <vector>
 
+// Only this stable subset of libsodium's C API is required by the hasher.
 extern "C"
 {
 int sodium_init(void);

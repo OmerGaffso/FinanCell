@@ -31,6 +31,7 @@ void applyMigration(
     unsigned int targetVersion,
     Migration migration)
 {
+    // Keep each schema change and its user_version marker atomic.
     database.execute("BEGIN IMMEDIATE TRANSACTION;");
     try
     {

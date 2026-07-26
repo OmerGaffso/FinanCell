@@ -50,6 +50,7 @@ std::optional<Transaction> SQLiteTransactionRepository::insertTransaction(
     constexpr char sql[] =
         "INSERT INTO transactions "
         "(cell_id, created_by_user_id, type, description, amount_minor, occurred_at, category) "
+        // Let SQLite generate the timestamp when the UI supplies an empty date.
         "VALUES (?, ?, ?, ?, ?, COALESCE(NULLIF(?, ''), CURRENT_TIMESTAMP), ?);";
 
     SQLiteStatement statement(m_database, sql);

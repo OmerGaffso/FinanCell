@@ -670,6 +670,8 @@ bool ConsoleUI::readAmount(std::int64_t& amountInMinorUnits) const
         return false;
     }
 
+    // Convert decimal digits directly to minor units to avoid floating-point
+    // rounding errors in monetary values.
     while (fraction.length() < 2) fraction.push_back('0');
     const std::string minorText = whole + fraction;
     std::uint64_t unsignedAmount = 0;
@@ -690,6 +692,7 @@ bool ConsoleUI::readAmount(std::int64_t& amountInMinorUnits) const
 std::string ConsoleUI::formatMoney(std::int64_t amountInMinorUnits) const
 {
     const bool negative = amountInMinorUnits < 0;
+    // Avoid overflowing when formatting the minimum signed 64-bit value.
     const std::uint64_t magnitude = negative
         ? static_cast<std::uint64_t>(-(amountInMinorUnits + 1)) + 1
         : static_cast<std::uint64_t>(amountInMinorUnits);
