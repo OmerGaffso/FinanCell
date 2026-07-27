@@ -76,6 +76,7 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/LoginPage.qml
             src/ui/qt/qml/RegisterPage.qml
             src/ui/qt/qml/HomePage.qml
+            src/ui/qt/qml/BrandPalette.qml
         )
         set_source_files_properties(src/ui/qt/qml/Main.qml
             PROPERTIES QT_RESOURCE_ALIAS Main.qml)
@@ -85,6 +86,12 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS RegisterPage.qml)
         set_source_files_properties(src/ui/qt/qml/HomePage.qml
             PROPERTIES QT_RESOURCE_ALIAS HomePage.qml)
+        set_source_files_properties(src/ui/qt/qml/BrandPalette.qml
+            PROPERTIES QT_RESOURCE_ALIAS BrandPalette.qml)
+        set_source_files_properties("data/assets/FinanCell Icon.png"
+            PROPERTIES QT_RESOURCE_ALIAS FinanCellIcon.png)
+        set_source_files_properties("data/assets/FinanCell Banner Light.png"
+            PROPERTIES QT_RESOURCE_ALIAS FinanCellBannerLight.png)
 
         qt_add_executable(FinanCellGui
             src/gui_main.cpp
@@ -96,6 +103,12 @@ if(FINANCELL_BUILD_GUI)
             VERSION 1.0
             RESOURCE_PREFIX /qt/qml
             QML_FILES ${FINANCELL_QML_FILES}
+        )
+        qt_add_resources(FinanCellGui financell_brand_assets
+            PREFIX /assets
+            FILES
+                "data/assets/FinanCell Icon.png"
+                "data/assets/FinanCell Banner Light.png"
         )
         target_link_libraries(FinanCellGui PRIVATE
             FinanCellCore
