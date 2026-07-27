@@ -54,6 +54,25 @@ cmake --build build
 
 The application creates its database at `data/financell.db`.
 
+## Qt Quick GUI
+
+The first graphical milestone uses Qt 6.2 or newer with the Quick, QML, and
+Quick Controls 2 development components. GUI discovery is enabled by default:
+
+```sh
+cmake -S . -B build -DFINANCELL_BUILD_GUI=ON
+cmake --build build --target FinanCellGui
+./build/FinanCellGui
+```
+
+When the required Qt components are unavailable, CMake prints a warning and
+continues configuring the console application and tests. Configure with
+`-DFINANCELL_BUILD_GUI=OFF` to skip Qt discovery explicitly.
+
+Run either executable from the repository root to use `data/financell.db`.
+The GUI applies the same migrations and shares the same user accounts as the
+console application; it does not reset or replace the database.
+
 Passwords are stored only as libsodium Argon2 hashes. Databases from early
 development builds that stored plaintext passwords require account recreation;
 plaintext fallback authentication is intentionally not supported.
