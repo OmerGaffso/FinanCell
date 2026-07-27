@@ -9,6 +9,14 @@ Page {
     property string notice: ""
     signal registrationRequested()
 
+    background: Rectangle {
+        color: brand.background
+    }
+
+    BrandPalette {
+        id: brand
+    }
+
     Component.onCompleted: controller.clearError()
 
     ScrollView {
@@ -21,7 +29,16 @@ Page {
             spacing: 14
 
             Item {
-                Layout.preferredHeight: 56
+                Layout.preferredHeight: 36
+            }
+
+            Image {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: page.width >= 600 ? Math.min(page.width - 96, 520) : 112
+                Layout.preferredHeight: page.width >= 600 ? 180 : 112
+                source: page.width >= 600 ? brand.lightBannerSource : brand.iconSource
+                fillMode: Image.PreserveAspectFit
+                mipmap: true
             }
 
             Label {
@@ -31,19 +48,21 @@ Page {
                 font.pixelSize: 26
                 font.bold: true
                 wrapMode: Text.WordWrap
+                color: brand.navy
             }
 
             Label {
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 text: qsTr("Sign in to continue")
+                color: brand.mutedText
             }
 
             Label {
                 Layout.fillWidth: true
                 visible: page.notice.length > 0
                 text: page.notice
-                color: "#287a3d"
+                color: brand.greenDark
                 wrapMode: Text.WordWrap
             }
 
@@ -71,7 +90,7 @@ Page {
                 Layout.fillWidth: true
                 visible: controller.errorMessage.length > 0
                 text: controller.errorMessage
-                color: "#b3261e"
+                color: brand.danger
                 wrapMode: Text.WordWrap
             }
 
@@ -79,6 +98,8 @@ Page {
                 id: loginButton
                 Layout.fillWidth: true
                 text: qsTr("Sign in")
+                palette.button: brand.green
+                palette.buttonText: brand.navyDeep
                 enabled: usernameField.text.length > 0 && passwordField.text.length > 0
                 onClicked: {
                     const submittedPassword = passwordField.text
@@ -91,6 +112,7 @@ Page {
                 Layout.fillWidth: true
                 text: qsTr("Create an account")
                 flat: true
+                palette.buttonText: brand.greenDark
                 onClicked: {
                     controller.clearError()
                     page.registrationRequested()

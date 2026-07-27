@@ -4,6 +4,7 @@
 #include <QQmlContext>
 #include <QObject>
 #include <QDebug>
+#include <QIcon>
 #include <QString>
 #include <QUrl>
 
@@ -21,6 +22,7 @@
 int main(int argc, char* argv[])
 {
     QGuiApplication application(argc, argv);
+    QGuiApplication::setWindowIcon(QIcon(QStringLiteral(":/assets/FinanCellIcon.png")));
 
     std::unique_ptr<SQLiteDatabase> database;
     std::unique_ptr<SQLiteUserRepository> userRepository;

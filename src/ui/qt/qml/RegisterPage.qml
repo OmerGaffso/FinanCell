@@ -10,6 +10,14 @@ Page {
     signal backRequested()
     signal registrationCompleted()
 
+    background: Rectangle {
+        color: brand.background
+    }
+
+    BrandPalette {
+        id: brand
+    }
+
     Component.onCompleted: controller.clearError()
 
     function clearMessages() {
@@ -27,7 +35,16 @@ Page {
             spacing: 14
 
             Item {
-                Layout.preferredHeight: 32
+                Layout.preferredHeight: 24
+            }
+
+            Image {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: 88
+                Layout.preferredHeight: 88
+                source: brand.iconSource
+                fillMode: Image.PreserveAspectFit
+                mipmap: true
             }
 
             Label {
@@ -37,6 +54,7 @@ Page {
                 font.pixelSize: 26
                 font.bold: true
                 wrapMode: Text.WordWrap
+                color: brand.navy
             }
 
             TextField {
@@ -77,7 +95,7 @@ Page {
                 text: page.localError.length > 0
                       ? page.localError
                       : controller.errorMessage
-                color: "#b3261e"
+                color: brand.danger
                 wrapMode: Text.WordWrap
             }
 
@@ -85,6 +103,8 @@ Page {
                 id: registerButton
                 Layout.fillWidth: true
                 text: qsTr("Create account")
+                palette.button: brand.green
+                palette.buttonText: brand.navyDeep
                 enabled: usernameField.text.length > 0
                          && displayNameField.text.length > 0
                          && passwordField.text.length > 0
@@ -113,6 +133,7 @@ Page {
                 Layout.fillWidth: true
                 text: qsTr("Back to sign in")
                 flat: true
+                palette.buttonText: brand.greenDark
                 onClicked: {
                     controller.clearError()
                     page.backRequested()

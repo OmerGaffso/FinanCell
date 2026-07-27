@@ -11,6 +11,20 @@ ApplicationWindow {
     minimumHeight: 480
     visible: true
     title: qsTr("FinanCell")
+    color: brand.background
+    palette.window: brand.background
+    palette.windowText: brand.navy
+    palette.base: brand.surface
+    palette.text: brand.navy
+    palette.button: brand.green
+    palette.buttonText: brand.navyDeep
+    palette.highlight: brand.green
+    palette.highlightedText: brand.navyDeep
+    palette.placeholderText: brand.mutedText
+
+    BrandPalette {
+        id: brand
+    }
 
     readonly property bool backendReady: startupError.length === 0
                                          && userController !== null
@@ -66,10 +80,23 @@ ApplicationWindow {
         id: startupFailureComponent
 
         Page {
+            background: Rectangle {
+                color: brand.background
+            }
+
             ColumnLayout {
                 anchors.centerIn: parent
                 width: Math.min(parent.width - 48, 440)
                 spacing: 16
+
+                Image {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: 96
+                    Layout.preferredHeight: 96
+                    source: brand.iconSource
+                    fillMode: Image.PreserveAspectFit
+                    mipmap: true
+                }
 
                 Label {
                     Layout.fillWidth: true
@@ -78,6 +105,7 @@ ApplicationWindow {
                     font.pixelSize: 24
                     font.bold: true
                     wrapMode: Text.WordWrap
+                    color: brand.navy
                 }
 
                 Label {
@@ -85,6 +113,7 @@ ApplicationWindow {
                     horizontalAlignment: Text.AlignHCenter
                     text: startupError
                     wrapMode: Text.WordWrap
+                    color: brand.mutedText
                 }
             }
         }
