@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cstdint>
+
 #include <QObject>
 #include <QString>
+#include <QVariantList>
 
 class UserService;
 
@@ -17,6 +20,8 @@ class UserController final : public QObject
     Q_PROPERTY(QString displayName READ displayName NOTIFY currentUserChanged)
     /** @brief Latest user-facing account-operation error. */
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
+    /** @brief Public user summaries returned by the latest directory search. */
+    Q_PROPERTY(QVariantList users READ users NOTIFY usersChanged)
 
 public:
     /** @brief Creates the controller. @param userService Existing user application service. @param parent Optional Qt owner. */
@@ -30,6 +35,8 @@ public:
     QString displayName() const;
     /** @brief Returns the latest user-facing failure. @return Error text, or empty when no error is active. */
     QString errorMessage() const;
+    /** @brief Returns public results from the latest directory search. @return User summary maps for QML. */
+    QVariantList users() const;
 
     /** @brief Registers an account through UserService. @param username Requested username. @param displayName Requested display name. @param password Plaintext password used only for this call. @return True when the account was created. */
     Q_INVOKABLE bool registerUser(
@@ -38,6 +45,8 @@ public:
         const QString& password);
     /** @brief Authenticates through UserService. @param username Submitted username. @param password Plaintext password used only for this call. @return True when authenticated. */
     Q_INVOKABLE bool login(const QString& username, const QString& password);
+    /** @brief Searches registered users through UserService. @param query Optional username or display-name fragment. @return True when the search completed. */
+    Q_INVOKABLE bool searchUsers(const QString& query);
     /** @brief Clears the current GUI session. */
     Q_INVOKABLE void logout();
     /** @brief Clears the current user-facing error. */
@@ -50,14 +59,21 @@ signals:
     void currentUserChanged();
     /** @brief Emitted when the user-facing error changes. */
     void errorMessageChanged();
+    /** @brief Emitted when directory search results change. */
+    void usersChanged();
 
 private:
     void setErrorMessage(const QString& message);
-    void setCurrentUser(const QString& username, const QString& displayName);
+    void setCurrentUser(
+        std::uint64_t userId,
+        const QString& username,
+        const QString& displayName);
 
     UserService& m_userService;
     bool m_loggedIn{false};
+    std::uint64_t m_currentUserId{0};
     QString m_username;
     QString m_displayName;
     QString m_errorMessage;
+    QVariantList m_users;
 };

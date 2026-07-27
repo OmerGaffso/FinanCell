@@ -1,9 +1,11 @@
 #include "ui/qt/controllers/UserController.h"
 
 #include <QDebug>
+#include <QVariantMap>
 
 #include <exception>
 #include <string>
+#include <utility>
 
 #include "application/UserService.h"
 
@@ -30,6 +32,11 @@ QString UserController::displayName() const
 QString UserController::errorMessage() const
 {
     return m_errorMessage;
+}
+
+QVariantList UserController::users() const
+{
+    return m_users;
 }
 
 bool UserController::registerUser(
@@ -84,6 +91,7 @@ bool UserController::login(const QString& username, const QString& password)
         }
 
         setCurrentUser(
+            user->getUserId(),
             QString::fromStdString(user->getUsername()),
             QString::fromStdString(user->getDisplayName()));
         return true;
@@ -97,14 +105,66 @@ bool UserController::login(const QString& username, const QString& password)
     }
 }
 
+bool UserController::searchUsers(const QString& query)
+{
+    clearError();
+    try
+    {
+        const auto summaries = m_userService.searchUsers(
+            m_currentUserId, query.toStdString());
+        if (!summaries)
+        {
+            setErrorMessage(QStringLiteral(
+                "User search is unavailable. Sign in again or shorten the search text."));
+            return false;
+        }
+
+        QVariantList users;
+        users.reserve(static_cast<qsizetype>(summaries->size()));
+        for (const auto& summary : *summaries)
+        {
+            QVariantMap user;
+            user.insert(
+                QStringLiteral("userId"),
+                QVariant::fromValue<qulonglong>(summary.getUserId()));
+            user.insert(
+                QStringLiteral("username"),
+                QString::fromStdString(summary.getUsername()));
+            user.insert(
+                QStringLiteral("displayName"),
+                QString::fromStdString(summary.getDisplayName()));
+            users.append(user);
+        }
+
+        m_users = std::move(users);
+        emit usersChanged();
+        return true;
+    }
+    catch (const std::exception& error)
+    {
+        qCritical().noquote() << "User search failed:" << error.what();
+        setErrorMessage(QStringLiteral(
+            "Users could not be loaded because the database operation failed."));
+        return false;
+    }
+}
+
 void UserController::logout()
 {
     clearError();
-    if (!m_loggedIn && m_username.isEmpty() && m_displayName.isEmpty()) return;
+    if (!m_loggedIn && m_username.isEmpty() && m_displayName.isEmpty() &&
+        m_users.isEmpty())
+        return;
 
     m_loggedIn = false;
+    m_currentUserId = 0;
     m_username.clear();
     m_displayName.clear();
+    if (!m_users.isEmpty())
+    {
+        m_users.clear();
+        emit usersChanged();
+    }
     emit currentUserChanged();
     emit loggedInChanged();
 }
@@ -122,11 +182,15 @@ void UserController::setErrorMessage(const QString& message)
 }
 
 void UserController::setCurrentUser(
+    std::uint64_t userId,
     const QString& username,
     const QString& displayName)
 {
-    const bool identityChanged = m_username != username || m_displayName != displayName;
+    const bool identityChanged = m_currentUserId != userId ||
+                                 m_username != username ||
+                                 m_displayName != displayName;
     const bool loginChanged = !m_loggedIn;
+    m_currentUserId = userId;
     m_username = username;
     m_displayName = displayName;
     m_loggedIn = true;
