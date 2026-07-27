@@ -59,6 +59,16 @@ The application creates its database at `data/financell.db`.
 The first graphical milestone uses Qt 6.2 or newer with the Quick, QML, and
 Quick Controls 2 development components. GUI discovery is enabled by default:
 
+On Debian, Ubuntu, or Linux Mint, install the development and runtime modules
+with:
+
+```sh
+sudo apt install qt6-base-dev qt6-declarative-dev libgl1-mesa-dev \
+    qml6-module-qtquick qml6-module-qtquick-controls \
+    qml6-module-qtquick-layouts qml6-module-qtquick-templates \
+    qml6-module-qtqml-workerscript
+```
+
 ```sh
 cmake -S . -B build -DFINANCELL_BUILD_GUI=ON
 cmake --build build --target FinanCellGui

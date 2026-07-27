@@ -98,10 +98,12 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/controllers/UserController.cpp
             src/ui/qt/controllers/UserController.h
         )
+        set_target_properties(FinanCellGui PROPERTIES AUTOMOC ON AUTORCC ON)
         qt_add_qml_module(FinanCellGui
             URI FinanCell
             VERSION 1.0
             RESOURCE_PREFIX /qt/qml
+            OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/qml/FinanCell
             QML_FILES ${FINANCELL_QML_FILES}
         )
         qt_add_resources(FinanCellGui financell_brand_assets
@@ -116,7 +118,6 @@ if(FINANCELL_BUILD_GUI)
             Qt6::Qml
             Qt6::QuickControls2
         )
-        set_target_properties(FinanCellGui PROPERTIES AUTOMOC ON AUTORCC ON)
         financell_enable_warnings(FinanCellGui)
     else()
         message(WARNING
