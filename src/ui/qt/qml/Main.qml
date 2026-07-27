@@ -73,6 +73,16 @@ ApplicationWindow {
 
         HomePage {
             controller: userController
+            onUserLookupRequested: stackView.push(userLookupPageComponent)
+        }
+    }
+
+    Component {
+        id: userLookupPageComponent
+
+        UserLookupPage {
+            controller: userController
+            onBackRequested: stackView.pop()
         }
     }
 

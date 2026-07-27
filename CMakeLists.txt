@@ -76,6 +76,7 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/LoginPage.qml
             src/ui/qt/qml/RegisterPage.qml
             src/ui/qt/qml/HomePage.qml
+            src/ui/qt/qml/UserLookupPage.qml
             src/ui/qt/qml/BrandPalette.qml
         )
         set_source_files_properties(src/ui/qt/qml/Main.qml
@@ -86,6 +87,8 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS RegisterPage.qml)
         set_source_files_properties(src/ui/qt/qml/HomePage.qml
             PROPERTIES QT_RESOURCE_ALIAS HomePage.qml)
+        set_source_files_properties(src/ui/qt/qml/UserLookupPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS UserLookupPage.qml)
         set_source_files_properties(src/ui/qt/qml/BrandPalette.qml
             PROPERTIES QT_RESOURCE_ALIAS BrandPalette.qml)
         set_source_files_properties("data/assets/FinanCell Icon.png"

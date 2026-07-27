@@ -6,6 +6,7 @@ Page {
     id: page
 
     required property var controller
+    signal userLookupRequested()
 
     background: Rectangle {
         color: brand.background
@@ -49,9 +50,17 @@ Page {
 
         Button {
             Layout.fillWidth: true
-            text: qsTr("Log out")
+            text: qsTr("Find registered users")
             palette.button: brand.green
             palette.buttonText: brand.navyDeep
+            onClicked: page.userLookupRequested()
+        }
+
+        Button {
+            Layout.fillWidth: true
+            text: qsTr("Log out")
+            flat: true
+            palette.buttonText: brand.greenDark
             onClicked: controller.logout()
         }
     }
