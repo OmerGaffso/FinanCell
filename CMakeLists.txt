@@ -14,6 +14,8 @@ find_package(SQLite3 REQUIRED)
 find_library(SODIUM_LIBRARY NAMES sodium libsodium.so.23 REQUIRED)
 find_package(Doxygen QUIET)
 
+option(FINANCELL_BUILD_GUI "Build the Qt Quick graphical application" ON)
+
 if(DOXYGEN_FOUND)
     add_custom_target(docs
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
@@ -65,6 +67,33 @@ endfunction()
 financell_enable_warnings(FinanCellCore)
 financell_enable_warnings(FinanCellConsoleUI)
 financell_enable_warnings(FinanCell)
+
+if(FINANCELL_BUILD_GUI)
+    find_package(Qt6 6.2 QUIET COMPONENTS Quick Qml QuickControls2)
+    if(Qt6_FOUND)
+        qt_add_executable(FinanCellGui src/gui_main.cpp)
+        qt_add_qml_module(FinanCellGui
+            URI FinanCell
+            VERSION 1.0
+            RESOURCE_PREFIX /qt/qml
+            QML_FILES
+                src/ui/qt/qml/Main.qml
+        )
+        target_link_libraries(FinanCellGui PRIVATE
+            FinanCellCore
+            Qt6::Quick
+            Qt6::Qml
+            Qt6::QuickControls2
+        )
+        set_target_properties(FinanCellGui PROPERTIES AUTOMOC ON AUTORCC ON)
+        financell_enable_warnings(FinanCellGui)
+    else()
+        message(WARNING
+            "Qt 6.2 or newer with Quick, Qml, and QuickControls2 was not found. "
+            "FinanCellGui will not be built; the console application and tests remain available."
+        )
+    endif()
+endif()
 
 if(BUILD_TESTING)
     add_executable(FinanCellTests
