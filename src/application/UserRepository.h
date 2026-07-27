@@ -1,9 +1,12 @@
 #pragma once
 
+#include <cstddef>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "domain/User.h"
+#include "domain/UserSummary.h"
 
 /** @brief Persistence contract for user accounts. */
 class UserRepository
@@ -23,4 +26,8 @@ public:
     virtual std::optional<User> findUserById(std::uint64_t userId) const = 0;
     /** @brief Finds a user by username. @param username Username. @return Matching user, or empty. */
     virtual std::optional<User> findUserByUsername(const std::string& username) const = 0;
+    /** @brief Searches public user-directory fields. @param query Case-insensitive username or display-name fragment. @param limit Maximum result count. @return Matching public summaries. */
+    virtual std::vector<UserSummary> findUserSummaries(
+        const std::string& query,
+        std::size_t limit) const = 0;
 };

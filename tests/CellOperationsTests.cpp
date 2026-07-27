@@ -70,6 +70,22 @@ int main()
             "new hashed account authenticates with normalized username");
     require(!userService.createUser(secureUsername, secureName, securePassword),
             "duplicate username rejected");
+    const auto allUserSummaries = userService.searchUsers(owner->getUserId(), "");
+    require(allUserSummaries && allUserSummaries->size() == 4,
+            "authenticated user lists the registered-user directory");
+    const auto usernameMatches = userService.searchUsers(owner->getUserId(), "SEC");
+    require(usernameMatches && usernameMatches->size() == 1 &&
+                usernameMatches->front().getUsername() == "secure",
+            "user directory searches usernames case-insensitively");
+    const auto displayNameMatches = userService.searchUsers(
+        owner->getUserId(), "cell member");
+    require(displayNameMatches && displayNameMatches->size() == 1 &&
+                displayNameMatches->front().getUserId() == member->getUserId(),
+            "user directory searches display names case-insensitively");
+    require(!userService.searchUsers(9999, "") &&
+                !userService.searchUsers(
+                    owner->getUserId(), std::string(51, 'x')),
+            "user directory rejects invalid actors and oversized queries");
 
     require(cellService.createCell(" Family Budget ", owner->getUserId(), " Shared expenses "),
             "create cell");

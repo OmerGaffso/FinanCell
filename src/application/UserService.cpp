@@ -69,6 +69,21 @@ std::optional<User> UserService::findUserById(std::uint64_t userId) const
     return m_userRepository.findUserById(userId);
 }
 
+std::optional<std::vector<UserSummary>> UserService::searchUsers(
+    std::uint64_t actingUserId,
+    const std::string& query) const
+{
+    const std::string trimmedQuery = StringUtils::trim(query);
+    if (actingUserId == 0 || !m_userRepository.findUserById(actingUserId) ||
+        trimmedQuery.size() > MAX_USER_SEARCH_LENGTH)
+    {
+        return std::nullopt;
+    }
+
+    return m_userRepository.findUserSummaries(
+        trimmedQuery, MAX_USER_SEARCH_RESULTS);
+}
+
 bool UserService::userExists(const std::string& username) const
 {
     const std::string normalizedUsername = StringUtils::normalize(username);

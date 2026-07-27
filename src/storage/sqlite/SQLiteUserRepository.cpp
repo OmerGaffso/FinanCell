@@ -76,3 +76,30 @@ std::optional<User> SQLiteUserRepository::findUserByUsername(
         statement.columnText(2),
         statement.columnText(3));
 }
+
+std::vector<UserSummary> SQLiteUserRepository::findUserSummaries(
+    const std::string& query,
+    std::size_t limit) const
+{
+    constexpr char sql[] =
+        "SELECT id, username, display_name FROM users "
+        "WHERE ? = '' OR instr(lower(username), lower(?)) > 0 "
+        "OR instr(lower(display_name), lower(?)) > 0 "
+        "ORDER BY username COLLATE NOCASE, id LIMIT ?;";
+
+    SQLiteStatement statement(m_database, sql);
+    statement.bindText(1, query);
+    statement.bindText(2, query);
+    statement.bindText(3, query);
+    statement.bindUInt64(4, static_cast<std::uint64_t>(limit));
+
+    std::vector<UserSummary> users;
+    while (statement.next())
+    {
+        users.emplace_back(
+            statement.columnUInt64(0),
+            statement.columnText(1),
+            statement.columnText(2));
+    }
+    return users;
+}

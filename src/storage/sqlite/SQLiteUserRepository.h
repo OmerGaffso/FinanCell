@@ -22,6 +22,10 @@ public:
     std::optional<User> findUserById(std::uint64_t userId) const override;
     /** @copydoc UserRepository::findUserByUsername */
     std::optional<User> findUserByUsername(const std::string& username) const override;
+    /** @copydoc UserRepository::findUserSummaries */
+    std::vector<UserSummary> findUserSummaries(
+        const std::string& query,
+        std::size_t limit) const override;
 private:
     SQLiteDatabase& m_database;
 };

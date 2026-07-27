@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "application/UserRepository.h"
 #include "domain/User.h"
@@ -24,6 +25,10 @@ class UserService
         static constexpr std::size_t MIN_PASSWORD_LENGTH = 6;
         /** @brief Maximum accepted password length. */
         static constexpr std::size_t MAX_PASSWORD_LENGTH = 128;
+        /** @brief Maximum accepted user-directory query length. */
+        static constexpr std::size_t MAX_USER_SEARCH_LENGTH = 50;
+        /** @brief Maximum number of user-directory results. */
+        static constexpr std::size_t MAX_USER_SEARCH_RESULTS = 100;
 
         /** @brief Creates the service. @param userRepository User persistence. @param passwordHasher Password hashing provider. */
         UserService(UserRepository& userRepository, PasswordHasher& passwordHasher);
@@ -44,6 +49,10 @@ class UserService
         std::optional<User> findUserByUsername(const std::string& username) const;
         /** @brief Finds a user by ID. @param userId User ID. @return Matching user, or empty. */
         std::optional<User> findUserById(std::uint64_t userId) const;
+        /** @brief Searches the registered-user directory. @param actingUserId Authenticated actor ID. @param query Optional username or display-name fragment. @return Public summaries, or empty optional for an invalid actor or query. */
+        std::optional<std::vector<UserSummary>> searchUsers(
+            std::uint64_t actingUserId,
+            const std::string& query) const;
     private:
         UserRepository& m_userRepository;
         PasswordHasher& m_passwordHasher;
