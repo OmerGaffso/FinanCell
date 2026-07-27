@@ -71,7 +71,11 @@ financell_enable_warnings(FinanCell)
 if(FINANCELL_BUILD_GUI)
     find_package(Qt6 6.2 QUIET COMPONENTS Quick Qml QuickControls2)
     if(Qt6_FOUND)
-        qt_add_executable(FinanCellGui src/gui_main.cpp)
+        qt_add_executable(FinanCellGui
+            src/gui_main.cpp
+            src/ui/qt/controllers/UserController.cpp
+            src/ui/qt/controllers/UserController.h
+        )
         qt_add_qml_module(FinanCellGui
             URI FinanCell
             VERSION 1.0
