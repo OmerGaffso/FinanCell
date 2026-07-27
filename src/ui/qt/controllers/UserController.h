@@ -9,9 +9,13 @@ class UserService;
 class UserController final : public QObject
 {
     Q_OBJECT
+    /** @brief Whether the current GUI session is authenticated. */
     Q_PROPERTY(bool loggedIn READ loggedIn NOTIFY loggedInChanged)
+    /** @brief Normalized username for the current GUI session. */
     Q_PROPERTY(QString username READ username NOTIFY currentUserChanged)
+    /** @brief Display name for the current GUI session. */
     Q_PROPERTY(QString displayName READ displayName NOTIFY currentUserChanged)
+    /** @brief Latest user-facing account-operation error. */
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
 
 public:

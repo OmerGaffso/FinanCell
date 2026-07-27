@@ -71,6 +71,21 @@ financell_enable_warnings(FinanCell)
 if(FINANCELL_BUILD_GUI)
     find_package(Qt6 6.2 QUIET COMPONENTS Quick Qml QuickControls2)
     if(Qt6_FOUND)
+        set(FINANCELL_QML_FILES
+            src/ui/qt/qml/Main.qml
+            src/ui/qt/qml/LoginPage.qml
+            src/ui/qt/qml/RegisterPage.qml
+            src/ui/qt/qml/HomePage.qml
+        )
+        set_source_files_properties(src/ui/qt/qml/Main.qml
+            PROPERTIES QT_RESOURCE_ALIAS Main.qml)
+        set_source_files_properties(src/ui/qt/qml/LoginPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS LoginPage.qml)
+        set_source_files_properties(src/ui/qt/qml/RegisterPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS RegisterPage.qml)
+        set_source_files_properties(src/ui/qt/qml/HomePage.qml
+            PROPERTIES QT_RESOURCE_ALIAS HomePage.qml)
+
         qt_add_executable(FinanCellGui
             src/gui_main.cpp
             src/ui/qt/controllers/UserController.cpp
@@ -80,8 +95,7 @@ if(FINANCELL_BUILD_GUI)
             URI FinanCell
             VERSION 1.0
             RESOURCE_PREFIX /qt/qml
-            QML_FILES
-                src/ui/qt/qml/Main.qml
+            QML_FILES ${FINANCELL_QML_FILES}
         )
         target_link_libraries(FinanCellGui PRIVATE
             FinanCellCore
