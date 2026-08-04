@@ -12,11 +12,14 @@
 #include <filesystem>
 #include <memory>
 
+#include "application/CellService.h"
 #include "application/UserService.h"
 #include "security/PasswordHasher.h"
+#include "storage/sqlite/SQLiteCellRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteMigrations.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
+#include "ui/qt/controllers/CellController.h"
 #include "ui/qt/controllers/UserController.h"
 #include "ui/qt/session/SessionState.h"
 
@@ -29,8 +32,11 @@ int main(int argc, char* argv[])
     std::unique_ptr<SQLiteUserRepository> userRepository;
     std::unique_ptr<SodiumPasswordHasher> passwordHasher;
     std::unique_ptr<UserService> userService;
+    std::unique_ptr<SQLiteCellRepository> cellRepository;
+    std::unique_ptr<CellService> cellService;
     std::unique_ptr<SessionState> session;
     std::unique_ptr<UserController> userController;
+    std::unique_ptr<CellController> cellController;
     QString startupError;
 
     try
@@ -41,8 +47,11 @@ int main(int argc, char* argv[])
         userRepository = std::make_unique<SQLiteUserRepository>(*database);
         passwordHasher = std::make_unique<SodiumPasswordHasher>();
         userService = std::make_unique<UserService>(*userRepository, *passwordHasher);
+        cellRepository = std::make_unique<SQLiteCellRepository>(*database);
+        cellService = std::make_unique<CellService>(*cellRepository, *userRepository);
         session = std::make_unique<SessionState>();
         userController = std::make_unique<UserController>(*userService, *session);
+        cellController = std::make_unique<CellController>(*cellService, *session);
     }
     catch (const std::exception& error)
     {
@@ -55,6 +64,8 @@ int main(int argc, char* argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(
         QStringLiteral("userController"), userController.get());
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("cellController"), cellController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("startupError"), startupError);
     const QUrl mainUrl(QStringLiteral("qrc:/qt/qml/FinanCell/Main.qml"));
@@ -72,3 +83,4 @@ int main(int argc, char* argv[])
     engine.load(mainUrl);
     return application.exec();
 }
+#include "storage/sqlite/SQLiteCellRepository.h"

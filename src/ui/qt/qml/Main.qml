@@ -28,6 +28,7 @@ ApplicationWindow {
 
     readonly property bool backendReady: startupError.length === 0
                                          && userController !== null
+                                         && cellController !== null
 
     StackView {
         id: stackView
@@ -73,7 +74,17 @@ ApplicationWindow {
 
         HomePage {
             controller: userController
+            onFinancialCellsRequested: stackView.push(cellListPageComponent)
             onUserLookupRequested: stackView.push(userLookupPageComponent)
+        }
+    }
+
+    Component {
+        id: cellListPageComponent
+
+        CellListPage {
+            controller: cellController
+            onBackRequested: stackView.pop()
         }
     }
 

@@ -2,12 +2,17 @@
 
 #include <cstdint>
 
+#include <QObject>
 #include <QString>
 
 /** @brief Holds the authenticated identity shared by Qt-facing controllers. */
-class SessionState final
+class SessionState final : public QObject
 {
+    Q_OBJECT
+
 public:
+    /** @brief Creates an empty session. @param parent Optional Qt owner. */
+    explicit SessionState(QObject* parent = nullptr);
     /** @brief Returns whether a user is authenticated. @return True when a user is active. */
     bool loggedIn() const;
     /** @brief Returns the active user ID. @return User ID, or zero while logged out. */
@@ -24,6 +29,10 @@ public:
         const QString& displayName);
     /** @brief Clears the authenticated identity. */
     void clear();
+
+signals:
+    /** @brief Emitted after the authenticated identity changes. */
+    void sessionChanged();
 
 private:
     std::uint64_t m_userId{0};

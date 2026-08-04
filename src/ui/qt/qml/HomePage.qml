@@ -6,6 +6,7 @@ Page {
     id: page
 
     required property var controller
+    signal financialCellsRequested()
     signal userLookupRequested()
 
     background: Rectangle {
@@ -50,9 +51,17 @@ Page {
 
         Button {
             Layout.fillWidth: true
-            text: qsTr("Find registered users")
+            text: qsTr("My financial cells")
             palette.button: brand.green
             palette.buttonText: brand.navyDeep
+            onClicked: page.financialCellsRequested()
+        }
+
+        Button {
+            Layout.fillWidth: true
+            text: qsTr("Find registered users")
+            flat: true
+            palette.buttonText: brand.greenDark
             onClicked: page.userLookupRequested()
         }
 
