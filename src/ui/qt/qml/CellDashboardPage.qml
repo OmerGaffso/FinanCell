@@ -73,13 +73,12 @@ Page {
             color: brand.surface
             border.color: brand.border
 
-            ColumnLayout {
+            Column {
                 id: summary
 
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.margins: 16
+                x: 16
+                y: 16
+                width: parent.width - 32
                 spacing: 8
 
                 Label {
@@ -90,7 +89,7 @@ Page {
                 }
 
                 Label {
-                    Layout.fillWidth: true
+                    width: parent.width
                     text: qsTr("Currency: %1").arg(
                               controller.hasSelectedCell
                               ? controller.selectedCell.currency
@@ -99,7 +98,7 @@ Page {
                 }
 
                 Label {
-                    Layout.fillWidth: true
+                    width: parent.width
                     text: qsTr("Transactions, categories, members, and reports will be added to this dashboard in the next UI stages.")
                     wrapMode: Text.WordWrap
                     color: brand.mutedText

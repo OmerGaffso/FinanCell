@@ -101,17 +101,16 @@ Page {
                 border.color: brand.border
                 border.width: 1
 
-                ColumnLayout {
+                Column {
                     id: details
 
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.margins: 14
+                    x: 14
+                    y: 14
+                    width: parent.width - 28
                     spacing: 4
 
                     Label {
-                        Layout.fillWidth: true
+                        width: parent.width
                         text: modelData.name
                         font.pixelSize: 18
                         font.bold: true
@@ -120,7 +119,7 @@ Page {
                     }
 
                     Label {
-                        Layout.fillWidth: true
+                        width: parent.width
                         visible: text.length > 0
                         text: modelData.description
                         wrapMode: Text.WordWrap
@@ -128,19 +127,26 @@ Page {
                     }
 
                     Label {
-                        Layout.fillWidth: true
+                        width: parent.width
                         text: qsTr("Currency: %1").arg(modelData.currency)
                         color: brand.greenDark
                     }
 
-                    Button {
-                        Layout.alignment: Qt.AlignRight
-                        text: qsTr("Open")
-                        flat: true
-                        palette.buttonText: brand.greenDark
-                        onClicked: {
-                            if (controller.selectCell(modelData.cellId))
-                                page.cellSelected()
+                    Item {
+                        width: parent.width
+                        height: openButton.implicitHeight
+
+                        Button {
+                            id: openButton
+
+                            anchors.right: parent.right
+                            text: qsTr("Open")
+                            flat: true
+                            palette.buttonText: brand.greenDark
+                            onClicked: {
+                                if (controller.selectCell(modelData.cellId))
+                                    page.cellSelected()
+                            }
                         }
                     }
                 }
