@@ -85,6 +85,30 @@ ApplicationWindow {
         CellListPage {
             controller: cellController
             onBackRequested: stackView.pop()
+            onCreateRequested: stackView.push(createCellPageComponent)
+            onCellSelected: stackView.push(cellDashboardPageComponent)
+        }
+    }
+
+    Component {
+        id: createCellPageComponent
+
+        CreateCellPage {
+            controller: cellController
+            onBackRequested: stackView.pop()
+            onCellCreated: stackView.pop()
+        }
+    }
+
+    Component {
+        id: cellDashboardPageComponent
+
+        CellDashboardPage {
+            controller: cellController
+            onBackRequested: {
+                stackView.pop()
+                cellController.clearSelection()
+            }
         }
     }
 

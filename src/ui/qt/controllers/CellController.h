@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QVariantList>
+#include <QVariantMap>
 
 class CellService;
 class SessionState;
@@ -15,6 +16,10 @@ class CellController final : public QObject
     Q_PROPERTY(QVariantList cells READ cells NOTIFY cellsChanged)
     /** @brief Latest user-facing cell-operation error. */
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
+    /** @brief Financial cell selected for the current GUI workflow. */
+    Q_PROPERTY(QVariantMap selectedCell READ selectedCell NOTIFY selectedCellChanged)
+    /** @brief Whether an accessible financial cell is selected. */
+    Q_PROPERTY(bool hasSelectedCell READ hasSelectedCell NOTIFY selectedCellChanged)
 
 public:
     /** @brief Creates the controller. @param cellService Existing cell application service. @param session Shared GUI session. @param parent Optional Qt owner. */
@@ -27,9 +32,21 @@ public:
     QVariantList cells() const;
     /** @brief Returns the latest user-facing failure. @return Error text, or empty. */
     QString errorMessage() const;
+    /** @brief Returns the selected financial cell. @return Cell summary map, or empty. */
+    QVariantMap selectedCell() const;
+    /** @brief Returns whether a financial cell is selected. @return True when selected. */
+    bool hasSelectedCell() const;
 
     /** @brief Loads cells available to the active user. @return True when loading completed. */
     Q_INVOKABLE bool loadCells();
+    /** @brief Creates a financial cell for the active user. @param name Cell name. @param description Optional description. @return True when created. */
+    Q_INVOKABLE bool createCell(
+        const QString& name,
+        const QString& description);
+    /** @brief Selects an accessible financial cell. @param cellId Cell ID. @return True when selected. */
+    Q_INVOKABLE bool selectCell(qulonglong cellId);
+    /** @brief Clears the selected financial cell. */
+    Q_INVOKABLE void clearSelection();
     /** @brief Clears the current user-facing error. */
     Q_INVOKABLE void clearError();
 
@@ -38,6 +55,8 @@ signals:
     void cellsChanged();
     /** @brief Emitted when the user-facing error changes. */
     void errorMessageChanged();
+    /** @brief Emitted when the selected financial cell changes. */
+    void selectedCellChanged();
 
 private:
     void clearCells();
@@ -46,5 +65,6 @@ private:
     CellService& m_cellService;
     SessionState& m_session;
     QVariantList m_cells;
+    QVariantMap m_selectedCell;
     QString m_errorMessage;
 };

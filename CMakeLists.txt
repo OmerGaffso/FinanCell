@@ -77,6 +77,8 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/RegisterPage.qml
             src/ui/qt/qml/HomePage.qml
             src/ui/qt/qml/CellListPage.qml
+            src/ui/qt/qml/CreateCellPage.qml
+            src/ui/qt/qml/CellDashboardPage.qml
             src/ui/qt/qml/UserLookupPage.qml
             src/ui/qt/qml/BrandPalette.qml
         )
@@ -90,6 +92,10 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS HomePage.qml)
         set_source_files_properties(src/ui/qt/qml/CellListPage.qml
             PROPERTIES QT_RESOURCE_ALIAS CellListPage.qml)
+        set_source_files_properties(src/ui/qt/qml/CreateCellPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS CreateCellPage.qml)
+        set_source_files_properties(src/ui/qt/qml/CellDashboardPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS CellDashboardPage.qml)
         set_source_files_properties(src/ui/qt/qml/UserLookupPage.qml
             PROPERTIES QT_RESOURCE_ALIAS UserLookupPage.qml)
         set_source_files_properties(src/ui/qt/qml/BrandPalette.qml
@@ -129,6 +135,25 @@ if(FINANCELL_BUILD_GUI)
             Qt6::QuickControls2
         )
         financell_enable_warnings(FinanCellGui)
+
+        if(BUILD_TESTING)
+            add_executable(FinanCellQtCellControllerTests
+                tests/QtCellControllerTests.cpp
+                src/ui/qt/controllers/CellController.cpp
+                src/ui/qt/controllers/CellController.h
+                src/ui/qt/session/SessionState.cpp
+                src/ui/qt/session/SessionState.h
+            )
+            set_target_properties(FinanCellQtCellControllerTests PROPERTIES AUTOMOC ON)
+            target_include_directories(FinanCellQtCellControllerTests
+                PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+            target_link_libraries(FinanCellQtCellControllerTests PRIVATE
+                FinanCellCore
+                Qt6::Core
+            )
+            financell_enable_warnings(FinanCellQtCellControllerTests)
+            add_test(NAME QtCellController COMMAND FinanCellQtCellControllerTests)
+        endif()
     else()
         message(WARNING
             "Qt 6.2 or newer with Quick, Qml, and QuickControls2 was not found. "

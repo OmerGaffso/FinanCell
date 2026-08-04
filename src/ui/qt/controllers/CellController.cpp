@@ -3,11 +3,38 @@
 #include <QDebug>
 #include <QVariantMap>
 
+#include <cstdint>
 #include <exception>
+#include <stdexcept>
+#include <string>
 #include <utility>
 
 #include "application/CellService.h"
 #include "ui/qt/session/SessionState.h"
+
+namespace
+{
+QVariantMap toVariantMap(const FinancialCell& domainCell)
+{
+    QVariantMap cell;
+    cell.insert(
+        QStringLiteral("cellId"),
+        QVariant::fromValue<qulonglong>(domainCell.getCellId()));
+    cell.insert(
+        QStringLiteral("ownerId"),
+        QVariant::fromValue<qulonglong>(domainCell.getOwnerId()));
+    cell.insert(
+        QStringLiteral("name"),
+        QString::fromStdString(domainCell.getCellName()));
+    cell.insert(
+        QStringLiteral("description"),
+        QString::fromStdString(domainCell.getCellDescription()));
+    cell.insert(
+        QStringLiteral("currency"),
+        QString::fromStdString(domainCell.getCurrency()));
+    return cell;
+}
+}
 
 CellController::CellController(
     CellService& cellService,
@@ -22,6 +49,7 @@ CellController::CellController(
         [this]()
         {
             clearCells();
+            clearSelection();
             clearError();
         });
 }
@@ -34,6 +62,16 @@ QVariantList CellController::cells() const
 QString CellController::errorMessage() const
 {
     return m_errorMessage;
+}
+
+QVariantMap CellController::selectedCell() const
+{
+    return m_selectedCell;
+}
+
+bool CellController::hasSelectedCell() const
+{
+    return !m_selectedCell.isEmpty();
 }
 
 bool CellController::loadCells()
@@ -53,23 +91,7 @@ bool CellController::loadCells()
         cells.reserve(static_cast<qsizetype>(domainCells.size()));
         for (const auto& domainCell : domainCells)
         {
-            QVariantMap cell;
-            cell.insert(
-                QStringLiteral("cellId"),
-                QVariant::fromValue<qulonglong>(domainCell.getCellId()));
-            cell.insert(
-                QStringLiteral("ownerId"),
-                QVariant::fromValue<qulonglong>(domainCell.getOwnerId()));
-            cell.insert(
-                QStringLiteral("name"),
-                QString::fromStdString(domainCell.getCellName()));
-            cell.insert(
-                QStringLiteral("description"),
-                QString::fromStdString(domainCell.getCellDescription()));
-            cell.insert(
-                QStringLiteral("currency"),
-                QString::fromStdString(domainCell.getCurrency()));
-            cells.append(cell);
+            cells.append(toVariantMap(domainCell));
         }
 
         m_cells = std::move(cells);
@@ -84,6 +106,101 @@ bool CellController::loadCells()
             "Financial cells could not be loaded because the database operation failed."));
         return false;
     }
+}
+
+bool CellController::createCell(
+    const QString& name,
+    const QString& description)
+{
+    clearError();
+    if (!m_session.loggedIn())
+    {
+        setErrorMessage(QStringLiteral("Sign in to create a financial cell."));
+        return false;
+    }
+
+    const std::string serviceName = name.toStdString();
+    const std::string serviceDescription = description.toStdString();
+    if (!m_cellService.isCellNameValid(serviceName))
+    {
+        setErrorMessage(QStringLiteral(
+            "Cell names must be between 3 and 50 characters."));
+        return false;
+    }
+    if (!m_cellService.isDescriptionValid(serviceDescription))
+    {
+        setErrorMessage(QStringLiteral(
+            "Cell descriptions cannot exceed 200 characters."));
+        return false;
+    }
+
+    try
+    {
+        if (!m_cellService.createCell(
+                serviceName, m_session.userId(), serviceDescription))
+        {
+            setErrorMessage(QStringLiteral("The financial cell could not be created."));
+            return false;
+        }
+
+        loadCells();
+        return true;
+    }
+    catch (const std::invalid_argument& error)
+    {
+        setErrorMessage(QString::fromStdString(error.what()));
+        return false;
+    }
+    catch (const std::exception& error)
+    {
+        qCritical().noquote() << "Financial-cell creation failed:" << error.what();
+        setErrorMessage(QStringLiteral(
+            "The financial cell could not be created because the database operation failed."));
+        return false;
+    }
+}
+
+bool CellController::selectCell(qulonglong cellId)
+{
+    clearError();
+    if (!m_session.loggedIn() || cellId == 0)
+    {
+        clearSelection();
+        setErrorMessage(QStringLiteral("This financial cell cannot be opened."));
+        return false;
+    }
+
+    try
+    {
+        const auto cell = m_cellService.getCellForUser(
+            m_session.userId(), static_cast<std::uint64_t>(cellId));
+        if (!cell)
+        {
+            clearSelection();
+            setErrorMessage(QStringLiteral(
+                "The financial cell does not exist or is not available to this user."));
+            return false;
+        }
+
+        m_selectedCell = toVariantMap(*cell);
+        emit selectedCellChanged();
+        return true;
+    }
+    catch (const std::exception& error)
+    {
+        qCritical().noquote() << "Financial-cell selection failed:" << error.what();
+        clearSelection();
+        setErrorMessage(QStringLiteral(
+            "The financial cell could not be opened because the database operation failed."));
+        return false;
+    }
+}
+
+void CellController::clearSelection()
+{
+    if (m_selectedCell.isEmpty()) return;
+    m_selectedCell.clear();
+    emit selectedCellChanged();
 }
 
 void CellController::clearError()

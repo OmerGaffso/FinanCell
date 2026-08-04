@@ -7,6 +7,8 @@ Page {
 
     required property var controller
     signal backRequested()
+    signal createRequested()
+    signal cellSelected()
 
     background: Rectangle {
         color: brand.background
@@ -59,6 +61,17 @@ Page {
             text: qsTr("Your owned and shared financial spaces appear here.")
             wrapMode: Text.WordWrap
             color: brand.mutedText
+        }
+
+        Button {
+            Layout.fillWidth: true
+            text: qsTr("Create a financial cell")
+            palette.button: brand.green
+            palette.buttonText: brand.navyDeep
+            onClicked: {
+                controller.clearError()
+                page.createRequested()
+            }
         }
 
         Label {
@@ -118,6 +131,17 @@ Page {
                         Layout.fillWidth: true
                         text: qsTr("Currency: %1").arg(modelData.currency)
                         color: brand.greenDark
+                    }
+
+                    Button {
+                        Layout.alignment: Qt.AlignRight
+                        text: qsTr("Open")
+                        flat: true
+                        palette.buttonText: brand.greenDark
+                        onClicked: {
+                            if (controller.selectCell(modelData.cellId))
+                                page.cellSelected()
+                        }
                     }
                 }
             }
