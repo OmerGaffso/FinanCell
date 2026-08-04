@@ -7,6 +7,7 @@
 
 class CellService;
 class SessionState;
+class TransactionService;
 
 /** @brief Qt-facing adapter for financial cells visible to the active user. */
 class CellController final : public QObject
@@ -22,9 +23,10 @@ class CellController final : public QObject
     Q_PROPERTY(bool hasSelectedCell READ hasSelectedCell NOTIFY selectedCellChanged)
 
 public:
-    /** @brief Creates the controller. @param cellService Existing cell application service. @param session Shared GUI session. @param parent Optional Qt owner. */
+    /** @brief Creates the controller. @param cellService Existing cell application service. @param transactionService Existing transaction application service. @param session Shared GUI session. @param parent Optional Qt owner. */
     CellController(
         CellService& cellService,
+        TransactionService& transactionService,
         SessionState& session,
         QObject* parent = nullptr);
 
@@ -63,6 +65,7 @@ private:
     void setErrorMessage(const QString& message);
 
     CellService& m_cellService;
+    TransactionService& m_transactionService;
     SessionState& m_session;
     QVariantList m_cells;
     QVariantMap m_selectedCell;

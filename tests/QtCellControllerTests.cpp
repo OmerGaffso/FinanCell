@@ -5,9 +5,12 @@
 #include <QVariantMap>
 
 #include "application/CellService.h"
+#include "application/TransactionService.h"
+#include "storage/sqlite/SQLiteCategoryRepository.h"
 #include "storage/sqlite/SQLiteCellRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteMigrations.h"
+#include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 #include "ui/qt/controllers/CellController.h"
 #include "ui/qt/session/SessionState.h"
@@ -30,7 +33,11 @@ int main()
     SQLiteMigrations::apply(database);
     SQLiteUserRepository userRepository(database);
     SQLiteCellRepository cellRepository(database);
+    SQLiteCategoryRepository categoryRepository(database);
+    SQLiteTransactionRepository transactionRepository(database);
     CellService cellService(cellRepository, userRepository);
+    TransactionService transactionService(
+        transactionRepository, cellRepository, categoryRepository);
 
     require(
         userRepository.insertUser("owner", "Cell Owner", "unused-test-hash"),
@@ -43,7 +50,7 @@ int main()
     require(owner && other, "load user fixtures");
 
     SessionState session;
-    CellController controller(cellService, session);
+    CellController controller(cellService, transactionService, session);
     require(!controller.loadCells(), "logged-out users cannot load cells");
 
     session.setUser(
@@ -63,6 +70,40 @@ int main()
 
     const QVariantMap createdCell = controller.cells().front().toMap();
     const qulonglong cellId = createdCell.value(QStringLiteral("cellId")).toULongLong();
+    require(createdCell.value(QStringLiteral("balanceText")).toString() ==
+                QStringLiteral("0.00 ILS"),
+            "new financial cell exposes a zero balance");
+
+    const auto categories = categoryRepository.findCategoriesByCellId(cellId);
+    require(!categories.empty(), "new cell receives its default category");
+    require(transactionService.addTransaction(
+                owner->getUserId(),
+                cellId,
+                TransactionType::INCOME,
+                "Salary",
+                12345,
+                "2026-08-01",
+                categories.front().getCategoryId()).has_value(),
+            "add income balance fixture");
+    require(controller.loadCells(), "reload cells after adding income");
+    require(controller.cells().front().toMap()
+                .value(QStringLiteral("balanceText")).toString() ==
+                QStringLiteral("123.45 ILS"),
+            "positive current balance is formatted for the GUI");
+    require(transactionService.addTransaction(
+                owner->getUserId(),
+                cellId,
+                TransactionType::EXPENSE,
+                "Rent",
+                20000,
+                "2026-08-02",
+                categories.front().getCategoryId()).has_value(),
+            "add expense balance fixture");
+    require(controller.loadCells(), "reload cells after adding expense");
+    require(controller.cells().front().toMap()
+                .value(QStringLiteral("balanceText")).toString() ==
+                QStringLiteral("-76.55 ILS"),
+            "negative current balance includes a minus sign");
     require(cellId != 0 && controller.selectCell(cellId),
             "owner can select the created financial cell");
     require(controller.hasSelectedCell() &&

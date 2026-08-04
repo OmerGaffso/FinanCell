@@ -82,71 +82,92 @@ Page {
             wrapMode: Text.WordWrap
         }
 
-        ListView {
-            id: cellList
+        GridView {
+            id: cellGrid
 
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            spacing: 10
             model: controller.cells
+            readonly property real targetCellSize: 180
+            readonly property int columnCount: Math.max(
+                1, Math.floor(width / targetCellSize))
+            cellWidth: width / columnCount
+            cellHeight: cellWidth
 
-            delegate: Rectangle {
+            delegate: Item {
                 required property var modelData
 
-                width: cellList.width
-                height: details.implicitHeight + 28
-                radius: 10
-                color: brand.surface
-                border.color: brand.border
-                border.width: 1
+                width: cellGrid.cellWidth
+                height: cellGrid.cellHeight
 
-                Column {
-                    id: details
+                Button {
+                    id: cellButton
 
-                    x: 14
-                    y: 14
-                    width: parent.width - 28
-                    spacing: 4
-
-                    Label {
-                        width: parent.width
-                        text: modelData.name
-                        font.pixelSize: 18
-                        font.bold: true
-                        elide: Text.ElideRight
-                        color: brand.navy
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    padding: 16
+                    text: modelData.name
+                    onClicked: {
+                        if (controller.selectCell(modelData.cellId))
+                            page.cellSelected()
                     }
 
-                    Label {
-                        width: parent.width
-                        visible: text.length > 0
-                        text: modelData.description
-                        wrapMode: Text.WordWrap
-                        color: brand.mutedText
+                    background: Rectangle {
+                        radius: 18
+                        color: cellButton.down
+                               ? brand.border
+                               : cellButton.hovered
+                                 ? "#eaf3ed"
+                                 : brand.surface
+                        border.color: cellButton.activeFocus
+                                      ? brand.green
+                                      : brand.border
+                        border.width: cellButton.activeFocus ? 2 : 1
                     }
 
-                    Label {
-                        width: parent.width
-                        text: qsTr("Currency: %1").arg(modelData.currency)
-                        color: brand.greenDark
-                    }
-
-                    Item {
-                        width: parent.width
-                        height: openButton.implicitHeight
-
-                        Button {
-                            id: openButton
-
+                    contentItem: Item {
+                        Label {
+                            anchors.top: parent.top
+                            anchors.left: parent.left
                             anchors.right: parent.right
-                            text: qsTr("Open")
-                            flat: true
-                            palette.buttonText: brand.greenDark
-                            onClicked: {
-                                if (controller.selectCell(modelData.cellId))
-                                    page.cellSelected()
-                            }
+                            text: cellButton.text
+                            font.pixelSize: 18
+                            font.bold: true
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                            wrapMode: Text.WordWrap
+                            color: brand.navy
+                        }
+
+                        Label {
+                            id: balanceCaption
+
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: balanceValue.top
+                            anchors.bottomMargin: 4
+                            text: qsTr("Current balance")
+                            horizontalAlignment: Text.AlignHCenter
+                            color: brand.mutedText
+                        }
+
+                        Label {
+                            id: balanceValue
+
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            text: modelData.balanceText
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pixelSize: 20
+                            font.bold: true
+                            color: modelData.balanceInMinorUnits < 0
+                                   ? brand.danger
+                                   : modelData.balanceInMinorUnits > 0
+                                     ? brand.greenDark
+                                     : brand.mutedText
+                            elide: Text.ElideRight
                         }
                     }
                 }
@@ -155,7 +176,7 @@ Page {
             Label {
                 anchors.centerIn: parent
                 width: Math.min(parent.width, 320)
-                visible: cellList.count === 0 && controller.errorMessage.length === 0
+                visible: cellGrid.count === 0 && controller.errorMessage.length === 0
                 horizontalAlignment: Text.AlignHCenter
                 text: qsTr("You do not have any financial cells yet.")
                 wrapMode: Text.WordWrap

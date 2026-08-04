@@ -5,16 +5,34 @@
 
 #include <cstdint>
 #include <exception>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
 #include "application/CellService.h"
+#include "application/TransactionService.h"
 #include "ui/qt/session/SessionState.h"
 
 namespace
 {
-QVariantMap toVariantMap(const FinancialCell& domainCell)
+QString formatMoney(std::int64_t amountInMinorUnits, const std::string& currency)
+{
+    const bool negative = amountInMinorUnits < 0;
+    const std::uint64_t magnitude = negative
+        ? static_cast<std::uint64_t>(-(amountInMinorUnits + 1)) + 1
+        : static_cast<std::uint64_t>(amountInMinorUnits);
+    std::ostringstream output;
+    if (negative) output << '-';
+    output << magnitude / 100 << '.' << std::setw(2) << std::setfill('0')
+           << magnitude % 100 << ' ' << currency;
+    return QString::fromStdString(output.str());
+}
+
+QVariantMap toVariantMap(
+    const FinancialCell& domainCell,
+    std::int64_t balanceInMinorUnits)
 {
     QVariantMap cell;
     cell.insert(
@@ -32,15 +50,25 @@ QVariantMap toVariantMap(const FinancialCell& domainCell)
     cell.insert(
         QStringLiteral("currency"),
         QString::fromStdString(domainCell.getCurrency()));
+    cell.insert(
+        QStringLiteral("balanceInMinorUnits"),
+        QVariant::fromValue<qlonglong>(balanceInMinorUnits));
+    cell.insert(
+        QStringLiteral("balanceText"),
+        formatMoney(balanceInMinorUnits, domainCell.getCurrency()));
     return cell;
 }
 }
 
 CellController::CellController(
     CellService& cellService,
+    TransactionService& transactionService,
     SessionState& session,
     QObject* parent)
-    : QObject(parent), m_cellService(cellService), m_session(session)
+    : QObject(parent),
+      m_cellService(cellService),
+      m_transactionService(transactionService),
+      m_session(session)
 {
     connect(
         &m_session,
@@ -91,7 +119,14 @@ bool CellController::loadCells()
         cells.reserve(static_cast<qsizetype>(domainCells.size()));
         for (const auto& domainCell : domainCells)
         {
-            cells.append(toVariantMap(domainCell));
+            const auto balance = m_transactionService.getCellBalance(
+                m_session.userId(), domainCell.getCellId());
+            if (!balance)
+            {
+                throw std::runtime_error(
+                    "An accessible financial cell did not expose its balance.");
+            }
+            cells.append(toVariantMap(domainCell, *balance));
         }
 
         m_cells = std::move(cells);
@@ -182,7 +217,17 @@ bool CellController::selectCell(qulonglong cellId)
             return false;
         }
 
-        m_selectedCell = toVariantMap(*cell);
+        const auto balance = m_transactionService.getCellBalance(
+            m_session.userId(), cell->getCellId());
+        if (!balance)
+        {
+            clearSelection();
+            setErrorMessage(QStringLiteral(
+                "The current balance is not available for this financial cell."));
+            return false;
+        }
+
+        m_selectedCell = toVariantMap(*cell, *balance);
         emit selectedCellChanged();
         return true;
     }

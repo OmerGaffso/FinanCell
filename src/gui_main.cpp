@@ -13,11 +13,14 @@
 #include <memory>
 
 #include "application/CellService.h"
+#include "application/TransactionService.h"
 #include "application/UserService.h"
 #include "security/PasswordHasher.h"
+#include "storage/sqlite/SQLiteCategoryRepository.h"
 #include "storage/sqlite/SQLiteCellRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
 #include "storage/sqlite/SQLiteMigrations.h"
+#include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 #include "ui/qt/controllers/CellController.h"
 #include "ui/qt/controllers/UserController.h"
@@ -34,6 +37,9 @@ int main(int argc, char* argv[])
     std::unique_ptr<UserService> userService;
     std::unique_ptr<SQLiteCellRepository> cellRepository;
     std::unique_ptr<CellService> cellService;
+    std::unique_ptr<SQLiteCategoryRepository> categoryRepository;
+    std::unique_ptr<SQLiteTransactionRepository> transactionRepository;
+    std::unique_ptr<TransactionService> transactionService;
     std::unique_ptr<SessionState> session;
     std::unique_ptr<UserController> userController;
     std::unique_ptr<CellController> cellController;
@@ -49,9 +55,15 @@ int main(int argc, char* argv[])
         userService = std::make_unique<UserService>(*userRepository, *passwordHasher);
         cellRepository = std::make_unique<SQLiteCellRepository>(*database);
         cellService = std::make_unique<CellService>(*cellRepository, *userRepository);
+        categoryRepository = std::make_unique<SQLiteCategoryRepository>(*database);
+        transactionRepository =
+            std::make_unique<SQLiteTransactionRepository>(*database);
+        transactionService = std::make_unique<TransactionService>(
+            *transactionRepository, *cellRepository, *categoryRepository);
         session = std::make_unique<SessionState>();
         userController = std::make_unique<UserController>(*userService, *session);
-        cellController = std::make_unique<CellController>(*cellService, *session);
+        cellController = std::make_unique<CellController>(
+            *cellService, *transactionService, *session);
     }
     catch (const std::exception& error)
     {
