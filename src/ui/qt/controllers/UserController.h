@@ -1,12 +1,11 @@
 #pragma once
 
-#include <cstdint>
-
 #include <QObject>
 #include <QString>
 #include <QVariantList>
 
 class UserService;
+class SessionState;
 
 /** @brief Qt-facing adapter for registration, authentication, and GUI session state. */
 class UserController final : public QObject
@@ -24,8 +23,11 @@ class UserController final : public QObject
     Q_PROPERTY(QVariantList users READ users NOTIFY usersChanged)
 
 public:
-    /** @brief Creates the controller. @param userService Existing user application service. @param parent Optional Qt owner. */
-    explicit UserController(UserService& userService, QObject* parent = nullptr);
+    /** @brief Creates the controller. @param userService Existing user application service. @param session Shared GUI session. @param parent Optional Qt owner. */
+    UserController(
+        UserService& userService,
+        SessionState& session,
+        QObject* parent = nullptr);
 
     /** @brief Returns whether the GUI session is authenticated. @return True after a successful login. */
     bool loggedIn() const;
@@ -70,10 +72,7 @@ private:
         const QString& displayName);
 
     UserService& m_userService;
-    bool m_loggedIn{false};
-    std::uint64_t m_currentUserId{0};
-    QString m_username;
-    QString m_displayName;
+    SessionState& m_session;
     QString m_errorMessage;
     QVariantList m_users;
 };

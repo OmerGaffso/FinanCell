@@ -8,25 +8,29 @@
 #include <utility>
 
 #include "application/UserService.h"
+#include "ui/qt/session/SessionState.h"
 
-UserController::UserController(UserService& userService, QObject* parent)
-    : QObject(parent), m_userService(userService)
+UserController::UserController(
+    UserService& userService,
+    SessionState& session,
+    QObject* parent)
+    : QObject(parent), m_userService(userService), m_session(session)
 {
 }
 
 bool UserController::loggedIn() const
 {
-    return m_loggedIn;
+    return m_session.loggedIn();
 }
 
 QString UserController::username() const
 {
-    return m_username;
+    return m_session.username();
 }
 
 QString UserController::displayName() const
 {
-    return m_displayName;
+    return m_session.displayName();
 }
 
 QString UserController::errorMessage() const
@@ -111,7 +115,7 @@ bool UserController::searchUsers(const QString& query)
     try
     {
         const auto summaries = m_userService.searchUsers(
-            m_currentUserId, query.toStdString());
+            m_session.userId(), query.toStdString());
         if (!summaries)
         {
             setErrorMessage(QStringLiteral(
@@ -152,14 +156,10 @@ bool UserController::searchUsers(const QString& query)
 void UserController::logout()
 {
     clearError();
-    if (!m_loggedIn && m_username.isEmpty() && m_displayName.isEmpty() &&
-        m_users.isEmpty())
+    if (!m_session.loggedIn() && m_users.isEmpty())
         return;
 
-    m_loggedIn = false;
-    m_currentUserId = 0;
-    m_username.clear();
-    m_displayName.clear();
+    m_session.clear();
     if (!m_users.isEmpty())
     {
         m_users.clear();
@@ -186,14 +186,11 @@ void UserController::setCurrentUser(
     const QString& username,
     const QString& displayName)
 {
-    const bool identityChanged = m_currentUserId != userId ||
-                                 m_username != username ||
-                                 m_displayName != displayName;
-    const bool loginChanged = !m_loggedIn;
-    m_currentUserId = userId;
-    m_username = username;
-    m_displayName = displayName;
-    m_loggedIn = true;
+    const bool identityChanged = m_session.userId() != userId ||
+                                 m_session.username() != username ||
+                                 m_session.displayName() != displayName;
+    const bool loginChanged = !m_session.loggedIn();
+    m_session.setUser(userId, username, displayName);
     if (identityChanged) emit currentUserChanged();
     if (loginChanged) emit loggedInChanged();
 }

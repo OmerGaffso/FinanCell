@@ -18,6 +18,7 @@
 #include "storage/sqlite/SQLiteMigrations.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 #include "ui/qt/controllers/UserController.h"
+#include "ui/qt/session/SessionState.h"
 
 int main(int argc, char* argv[])
 {
@@ -28,6 +29,7 @@ int main(int argc, char* argv[])
     std::unique_ptr<SQLiteUserRepository> userRepository;
     std::unique_ptr<SodiumPasswordHasher> passwordHasher;
     std::unique_ptr<UserService> userService;
+    std::unique_ptr<SessionState> session;
     std::unique_ptr<UserController> userController;
     QString startupError;
 
@@ -39,7 +41,8 @@ int main(int argc, char* argv[])
         userRepository = std::make_unique<SQLiteUserRepository>(*database);
         passwordHasher = std::make_unique<SodiumPasswordHasher>();
         userService = std::make_unique<UserService>(*userRepository, *passwordHasher);
-        userController = std::make_unique<UserController>(*userService);
+        session = std::make_unique<SessionState>();
+        userController = std::make_unique<UserController>(*userService, *session);
     }
     catch (const std::exception& error)
     {

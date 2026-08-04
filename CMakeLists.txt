@@ -100,6 +100,8 @@ if(FINANCELL_BUILD_GUI)
             src/gui_main.cpp
             src/ui/qt/controllers/UserController.cpp
             src/ui/qt/controllers/UserController.h
+            src/ui/qt/session/SessionState.cpp
+            src/ui/qt/session/SessionState.h
         )
         set_target_properties(FinanCellGui PROPERTIES AUTOMOC ON AUTORCC ON)
         qt_add_qml_module(FinanCellGui
