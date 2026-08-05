@@ -128,6 +128,8 @@ if(FINANCELL_BUILD_GUI)
 
         qt_add_executable(FinanCellGui
             src/gui_main.cpp
+            src/ui/qt/GuiDatabasePath.cpp
+            src/ui/qt/GuiDatabasePath.h
             src/ui/qt/controllers/CellController.cpp
             src/ui/qt/controllers/CellController.h
             src/ui/qt/controllers/CategoryController.cpp
@@ -219,6 +221,17 @@ if(FINANCELL_BUILD_GUI)
             )
             financell_enable_warnings(FinanCellGuiMvpAcceptanceTests)
             add_test(NAME GuiMvpAcceptance COMMAND FinanCellGuiMvpAcceptanceTests)
+
+            add_executable(FinanCellGuiDatabasePathTests
+                tests/GuiDatabasePathTests.cpp
+                src/ui/qt/GuiDatabasePath.cpp
+                src/ui/qt/GuiDatabasePath.h
+            )
+            target_include_directories(FinanCellGuiDatabasePathTests
+                PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+            target_link_libraries(FinanCellGuiDatabasePathTests PRIVATE Qt6::Core)
+            financell_enable_warnings(FinanCellGuiDatabasePathTests)
+            add_test(NAME GuiDatabasePath COMMAND FinanCellGuiDatabasePathTests)
 
             if(TARGET Qt6::QuickTest)
                 add_executable(FinanCellQmlSmokeTests

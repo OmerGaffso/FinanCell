@@ -82,9 +82,13 @@ When the required Qt components are unavailable, CMake prints a warning and
 continues configuring the console application and tests. Configure with
 `-DFINANCELL_BUILD_GUI=OFF` to skip Qt discovery explicitly.
 
-Run either executable from the repository root to use `data/financell.db`.
-The GUI applies the same migrations and shares the same user accounts as the
-console application; it does not reset or replace the database.
+The GUI stores its database in Qt's platform application-data directory. On a
+typical Linux desktop this is
+`~/.local/share/FinanCell/FinanCell/financell.db`. On first launch, if that
+destination does not exist, the GUI copies an existing
+`data/financell.db` from its working directory and leaves the original intact.
+Set `FINANCELL_DB_PATH` to an explicit path for isolated development or testing.
+The console application continues to use `data/financell.db`.
 
 Passwords are stored only as libsodium Argon2 hashes. Databases from early
 development builds that stored plaintext passwords require account recreation;

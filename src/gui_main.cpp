@@ -30,11 +30,14 @@
 #include "ui/qt/controllers/TransactionController.h"
 #include "ui/qt/controllers/ReportController.h"
 #include "ui/qt/controllers/UserController.h"
+#include "ui/qt/GuiDatabasePath.h"
 #include "ui/qt/session/SessionState.h"
 
 int main(int argc, char* argv[])
 {
     QGuiApplication application(argc, argv);
+    QCoreApplication::setOrganizationName(QStringLiteral("FinanCell"));
+    QCoreApplication::setApplicationName(QStringLiteral("FinanCell"));
     QGuiApplication::setWindowIcon(QIcon(QStringLiteral(":/assets/FinanCellIcon.png")));
 
     std::unique_ptr<SQLiteDatabase> database;
@@ -59,8 +62,8 @@ int main(int argc, char* argv[])
 
     try
     {
-        std::filesystem::create_directories("data");
-        database = std::make_unique<SQLiteDatabase>("data/financell.db");
+        const std::filesystem::path databasePath = GuiDatabasePath::resolve();
+        database = std::make_unique<SQLiteDatabase>(databasePath.string());
         SQLiteMigrations::apply(*database);
         userRepository = std::make_unique<SQLiteUserRepository>(*database);
         passwordHasher = std::make_unique<SodiumPasswordHasher>();
