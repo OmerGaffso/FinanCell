@@ -11,6 +11,7 @@ Page {
     signal categoriesRequested()
     signal transactionsRequested()
     signal reportRequested()
+    signal settingsRequested()
 
     background: Rectangle {
         color: brand.background
@@ -140,6 +141,15 @@ Page {
             flat: true
             palette.buttonText: brand.greenDark
             onClicked: page.reportRequested()
+        }
+
+        Button {
+            Layout.fillWidth: true
+            visible: controller.canManageSelectedCell
+            text: qsTr("Cell settings")
+            flat: true
+            palette.buttonText: brand.danger
+            onClicked: page.settingsRequested()
         }
 
         Item {

@@ -113,9 +113,24 @@ ApplicationWindow {
             onCategoriesRequested: stackView.push(categoryPageComponent)
             onTransactionsRequested: stackView.push(transactionPageComponent)
             onReportRequested: stackView.push(monthlyReportPageComponent)
+            onSettingsRequested: stackView.push(cellSettingsPageComponent)
             onBackRequested: {
+                cellController.loadCells()
                 stackView.pop()
                 cellController.clearSelection()
+            }
+        }
+    }
+
+    Component {
+        id: cellSettingsPageComponent
+
+        CellSettingsPage {
+            controller: cellController
+            onBackRequested: stackView.pop()
+            onCellDeleted: {
+                const cellList = stackView.get(stackView.depth - 3)
+                stackView.pop(cellList)
             }
         }
     }

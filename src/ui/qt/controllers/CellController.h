@@ -21,6 +21,8 @@ class CellController final : public QObject
     Q_PROPERTY(QVariantMap selectedCell READ selectedCell NOTIFY selectedCellChanged)
     /** @brief Whether an accessible financial cell is selected. */
     Q_PROPERTY(bool hasSelectedCell READ hasSelectedCell NOTIFY selectedCellChanged)
+    /** @brief Whether the active user owns the selected financial cell. */
+    Q_PROPERTY(bool canManageSelectedCell READ canManageSelectedCell NOTIFY selectedCellChanged)
 
 public:
     /** @brief Creates the controller. @param cellService Existing cell application service. @param transactionService Existing transaction application service. @param session Shared GUI session. @param parent Optional Qt owner. */
@@ -38,6 +40,8 @@ public:
     QVariantMap selectedCell() const;
     /** @brief Returns whether a financial cell is selected. @return True when selected. */
     bool hasSelectedCell() const;
+    /** @brief Returns whether the active user owns the selected cell. */
+    bool canManageSelectedCell() const;
 
     /** @brief Loads cells available to the active user. @return True when loading completed. */
     Q_INVOKABLE bool loadCells();
@@ -49,6 +53,12 @@ public:
     Q_INVOKABLE bool selectCell(qulonglong cellId);
     /** @brief Clears the selected financial cell. */
     Q_INVOKABLE void clearSelection();
+    /** @brief Updates the selected cell. @param name New name. @param description New description. @return True on success. */
+    Q_INVOKABLE bool updateSelectedCell(
+        const QString& name,
+        const QString& description);
+    /** @brief Permanently deletes the selected cell. @return True on success. */
+    Q_INVOKABLE bool deleteSelectedCell();
     /** @brief Clears the current user-facing error. */
     Q_INVOKABLE void clearError();
 

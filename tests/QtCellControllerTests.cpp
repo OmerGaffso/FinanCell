@@ -193,6 +193,18 @@ int main()
                 reportController.totalExpensesText() == "200.00 ILS" &&
                 reportController.balanceText() == "-75.00 ILS",
             "report controller exposes monthly totals and balance");
+    require(controller.loadCells() && controller.selectCell(cellId) &&
+                controller.canManageSelectedCell(),
+            "owner selects the cell for settings");
+    require(controller.updateSelectedCell(
+                QStringLiteral("Updated Home Budget"),
+                QStringLiteral("Updated household costs")) &&
+                controller.selectedCell().value("name").toString() ==
+                    QStringLiteral("Updated Home Budget"),
+            "owner updates selected cell details");
+    require(controller.deleteSelectedCell() &&
+                !controller.hasSelectedCell() && controller.cells().isEmpty(),
+            "owner deletes the selected cell and refreshes the list");
 
     std::cout << "Qt cell controller tests passed.\n";
     return 0;
