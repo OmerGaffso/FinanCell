@@ -166,6 +166,8 @@ if(FINANCELL_BUILD_GUI)
         financell_enable_warnings(FinanCellGui)
 
         if(BUILD_TESTING)
+            find_package(Qt6 6.2 QUIET COMPONENTS QuickTest)
+
             add_executable(FinanCellQtCellControllerTests
                 tests/QtCellControllerTests.cpp
                 src/ui/qt/controllers/CellController.cpp
@@ -190,6 +192,32 @@ if(FINANCELL_BUILD_GUI)
             )
             financell_enable_warnings(FinanCellQtCellControllerTests)
             add_test(NAME QtCellController COMMAND FinanCellQtCellControllerTests)
+
+            if(TARGET Qt6::QuickTest)
+                add_executable(FinanCellQmlSmokeTests
+                    tests/qml/QmlSmokeTestMain.cpp
+                )
+                set_target_properties(FinanCellQmlSmokeTests PROPERTIES AUTOMOC ON)
+                target_compile_definitions(FinanCellQmlSmokeTests PRIVATE
+                    QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/qml")
+                target_link_libraries(FinanCellQmlSmokeTests PRIVATE
+                    Qt6::QuickTest
+                    Qt6::QuickControls2
+                )
+                qt_add_resources(FinanCellQmlSmokeTests financell_test_assets
+                    PREFIX /assets
+                    FILES
+                        "data/assets/FinanCell Icon.png"
+                        "data/assets/FinanCell Banner Light.png"
+                )
+                financell_enable_warnings(FinanCellQmlSmokeTests)
+                add_test(NAME QmlNavigation COMMAND FinanCellQmlSmokeTests)
+                set_tests_properties(QmlNavigation PROPERTIES ENVIRONMENT
+                    "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Basic")
+            else()
+                message(WARNING
+                    "Qt Quick Test was not found. GUI navigation smoke tests will not be built.")
+            endif()
         endif()
     else()
         message(WARNING

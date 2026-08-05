@@ -98,6 +98,9 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+When the Qt Quick Test component is available, CTest also runs the complete GUI
+navigation flow offscreen and fails on controller binding or QML runtime errors.
+
 ## Generate documentation
 
 When Doxygen is installed, CMake exposes a `docs` target:

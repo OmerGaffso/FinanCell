@@ -36,6 +36,7 @@ ApplicationWindow {
 
     StackView {
         id: stackView
+        objectName: "mainStackView"
         anchors.fill: parent
         initialItem: window.backendReady ? loginPageComponent : startupFailureComponent
     }
@@ -55,6 +56,7 @@ ApplicationWindow {
         id: loginPageComponent
 
         LoginPage {
+            objectName: "loginPage"
             controller: userController
             onRegistrationRequested: stackView.push(registerPageComponent)
         }
@@ -64,6 +66,7 @@ ApplicationWindow {
         id: registerPageComponent
 
         RegisterPage {
+            objectName: "registerPage"
             controller: userController
             onBackRequested: stackView.pop()
             onRegistrationCompleted: {
@@ -77,6 +80,7 @@ ApplicationWindow {
         id: homePageComponent
 
         HomePage {
+            objectName: "homePage"
             controller: userController
             onFinancialCellsRequested: stackView.push(cellListPageComponent)
             onUserLookupRequested: stackView.push(userLookupPageComponent)
@@ -87,6 +91,7 @@ ApplicationWindow {
         id: cellListPageComponent
 
         CellListPage {
+            objectName: "cellListPage"
             controller: cellController
             onBackRequested: stackView.pop()
             onCreateRequested: stackView.push(createCellPageComponent)
@@ -98,6 +103,7 @@ ApplicationWindow {
         id: createCellPageComponent
 
         CreateCellPage {
+            objectName: "createCellPage"
             controller: cellController
             onBackRequested: stackView.pop()
             onCellCreated: stackView.pop()
@@ -108,6 +114,7 @@ ApplicationWindow {
         id: cellDashboardPageComponent
 
         CellDashboardPage {
+            objectName: "cellDashboardPage"
             controller: cellController
             onMembersRequested: stackView.push(memberPageComponent)
             onCategoriesRequested: stackView.push(categoryPageComponent)
@@ -126,6 +133,7 @@ ApplicationWindow {
         id: cellSettingsPageComponent
 
         CellSettingsPage {
+            objectName: "cellSettingsPage"
             controller: cellController
             onBackRequested: stackView.pop()
             onCellDeleted: {
@@ -139,6 +147,7 @@ ApplicationWindow {
         id: monthlyReportPageComponent
 
         MonthlyReportPage {
+            objectName: "monthlyReportPage"
             controller: reportController
             cellState: cellController
             onBackRequested: stackView.pop()
@@ -149,6 +158,7 @@ ApplicationWindow {
         id: transactionPageComponent
 
         TransactionPage {
+            objectName: "transactionPage"
             controller: transactionController
             cellState: cellController
             onBackRequested: stackView.pop()
@@ -161,6 +171,7 @@ ApplicationWindow {
         id: transactionFormPageComponent
 
         TransactionFormPage {
+            objectName: "transactionFormPage"
             controller: transactionController
             categoryState: categoryController
             cellState: cellController
@@ -176,6 +187,7 @@ ApplicationWindow {
         id: categoryPageComponent
 
         CategoryPage {
+            objectName: "categoryPage"
             controller: categoryController
             cellState: cellController
             onBackRequested: stackView.pop()
@@ -186,6 +198,7 @@ ApplicationWindow {
         id: memberPageComponent
 
         MemberPage {
+            objectName: "memberPage"
             controller: memberController
             cellState: cellController
             onBackRequested: stackView.pop()
@@ -197,6 +210,7 @@ ApplicationWindow {
         id: memberLookupPageComponent
 
         UserLookupPage {
+            objectName: "memberLookupPage"
             controller: userController
             selectionMode: true
             onBackRequested: stackView.pop()
@@ -214,6 +228,7 @@ ApplicationWindow {
         id: userLookupPageComponent
 
         UserLookupPage {
+            objectName: "userLookupPage"
             controller: userController
             onBackRequested: stackView.pop()
         }
