@@ -30,6 +30,16 @@ QString formatMoney(std::int64_t amount, const std::string& currency)
     return QString::fromStdString(output.str());
 }
 
+QString formatShortDate(const std::string& value)
+{
+    if (value.size() < 10 || value[4] != '-' || value[7] != '-')
+        return QString::fromStdString(value);
+    return QStringLiteral("%1/%2/%3")
+        .arg(QString::fromStdString(value.substr(8, 2)))
+        .arg(QString::fromStdString(value.substr(5, 2)))
+        .arg(QString::fromStdString(value.substr(2, 2)));
+}
+
 QString amountInput(std::int64_t amount)
 {
     std::ostringstream output;
@@ -156,6 +166,8 @@ bool TransactionController::loadTransactions(
                          amountInput(transaction.getAmountInMinorUnits()));
             value.insert(QStringLiteral("occurredAt"),
                          QString::fromStdString(transaction.getOccurredAt()));
+            value.insert(QStringLiteral("dateText"),
+                         formatShortDate(transaction.getOccurredAt()));
             value.insert(QStringLiteral("dateInput"),
                          QString::fromStdString(transaction.getOccurredAt().substr(0, 10)));
             value.insert(QStringLiteral("categoryId"),
@@ -220,7 +232,7 @@ bool TransactionController::addTransaction(
     if (!parsedType || !parsedAmount || !TransactionService::isDateValid(occurredAt.toStdString()))
     {
         setErrorMessage(QStringLiteral(
-            "Enter a positive amount with up to two decimals and a YYYY-MM-DD date."));
+            "Enter a positive amount with up to two decimals and select a valid date."));
         return false;
     }
     try
@@ -261,7 +273,7 @@ bool TransactionController::updateTransaction(
         !TransactionService::isDateValid(occurredAt.toStdString()))
     {
         setErrorMessage(QStringLiteral(
-            "Enter a positive amount with up to two decimals and a YYYY-MM-DD date."));
+            "Enter a positive amount with up to two decimals and select a valid date."));
         return false;
     }
     try

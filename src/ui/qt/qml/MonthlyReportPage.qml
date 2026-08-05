@@ -35,24 +35,24 @@ Page {
             }
         }
 
-        RowLayout {
+        ColumnLayout {
             Layout.fillWidth: true
-            TextField {
-                id: monthField
+            spacing: 10
+            DateSelector {
+                id: monthSelector
                 Layout.fillWidth: true
-                placeholderText: qsTr("Month YYYY-MM")
-                maximumLength: 7
-                onTextEdited: controller.clearError()
-                onAccepted: generateButton.clicked()
+                title: qsTr("Report month")
+                monthOnly: true
+                onIsoValueChanged: controller.clearError()
             }
             Button {
                 id: generateButton
+                Layout.fillWidth: true
                 text: qsTr("Generate")
-                enabled: monthField.text.length === 7
                 palette.button: brand.green
                 palette.buttonText: brand.navyDeep
                 onClicked: controller.generateReport(
-                    page.selectedCell.cellId, monthField.text)
+                    page.selectedCell.cellId, monthSelector.isoValue)
             }
         }
 

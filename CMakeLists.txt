@@ -84,6 +84,7 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/TransactionPage.qml
             src/ui/qt/qml/TransactionFormPage.qml
             src/ui/qt/qml/MonthlyReportPage.qml
+            src/ui/qt/qml/DateSelector.qml
             src/ui/qt/qml/CellSettingsPage.qml
             src/ui/qt/qml/UserLookupPage.qml
             src/ui/qt/qml/BrandPalette.qml
@@ -112,6 +113,8 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS TransactionFormPage.qml)
         set_source_files_properties(src/ui/qt/qml/MonthlyReportPage.qml
             PROPERTIES QT_RESOURCE_ALIAS MonthlyReportPage.qml)
+        set_source_files_properties(src/ui/qt/qml/DateSelector.qml
+            PROPERTIES QT_RESOURCE_ALIAS DateSelector.qml)
         set_source_files_properties(src/ui/qt/qml/CellSettingsPage.qml
             PROPERTIES QT_RESOURCE_ALIAS CellSettingsPage.qml)
         set_source_files_properties(src/ui/qt/qml/UserLookupPage.qml

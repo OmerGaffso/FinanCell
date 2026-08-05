@@ -66,7 +66,7 @@ bool ReportController::generateReport(qulonglong cellId, const QString& month)
         {
             clearReport();
             setErrorMessage(QStringLiteral(
-                "Enter a valid month in YYYY-MM format for an accessible cell."));
+                "Select a valid month for an accessible cell."));
             return false;
         }
 

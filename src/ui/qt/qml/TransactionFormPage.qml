@@ -21,7 +21,7 @@ Page {
             typeBox.currentIndex = controller.selectedTransaction.type === "EXPENSE" ? 1 : 0
             descriptionField.text = controller.selectedTransaction.description
             amountField.text = controller.selectedTransaction.amountInput
-            dateField.text = controller.selectedTransaction.dateInput
+            dateSelector.setIsoValue(controller.selectedTransaction.dateInput)
             Qt.callLater(selectCurrentCategory)
         }
     }
@@ -73,12 +73,11 @@ Page {
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
                 onTextEdited: controller.clearError()
             }
-            TextField {
-                id: dateField
+            DateSelector {
+                id: dateSelector
                 Layout.fillWidth: true
-                placeholderText: qsTr("Date YYYY-MM-DD (optional)")
-                maximumLength: 10
-                onTextEdited: controller.clearError()
+                title: qsTr("Transaction date")
+                onIsoValueChanged: controller.clearError()
             }
             ComboBox {
                 id: categoryBox
@@ -108,11 +107,11 @@ Page {
                         ? controller.updateTransaction(
                               page.selectedCell.cellId, type,
                               descriptionField.text, amountField.text,
-                              dateField.text, categoryBox.currentValue)
+                              dateSelector.isoValue, categoryBox.currentValue)
                         : controller.addTransaction(
                               page.selectedCell.cellId, type,
                               descriptionField.text, amountField.text,
-                              dateField.text, categoryBox.currentValue)
+                              dateSelector.isoValue, categoryBox.currentValue)
                     if (successful)
                         page.saved()
                 }

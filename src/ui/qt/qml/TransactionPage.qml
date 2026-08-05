@@ -57,24 +57,37 @@ Page {
             }
         }
 
-        RowLayout {
+        CheckBox {
+            id: dateFilter
             Layout.fillWidth: true
-            TextField {
+            text: qsTr("Filter by date range")
+            onToggled: {
+                controller.clearError()
+                if (!checked)
+                    controller.loadTransactions(page.selectedCell.cellId)
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: dateFilter.checked
+            spacing: 10
+
+            DateSelector {
                 id: fromDate
                 Layout.fillWidth: true
-                placeholderText: qsTr("From YYYY-MM-DD")
-                maximumLength: 10
+                title: qsTr("From")
             }
-            TextField {
+            DateSelector {
                 id: toDate
                 Layout.fillWidth: true
-                placeholderText: qsTr("To YYYY-MM-DD")
-                maximumLength: 10
+                title: qsTr("To")
             }
             Button {
+                Layout.fillWidth: true
                 text: qsTr("Apply")
                 onClicked: controller.loadTransactions(
-                    page.selectedCell.cellId, fromDate.text, toDate.text)
+                    page.selectedCell.cellId, fromDate.isoValue, toDate.isoValue)
             }
         }
 
@@ -131,7 +144,7 @@ Page {
                         text: qsTr("%1 · %2 · %3")
                               .arg(modelData.categoryName)
                               .arg(modelData.type)
-                              .arg(modelData.occurredAt)
+                              .arg(modelData.dateText)
                         color: brand.mutedText
                         elide: Text.ElideRight
                     }

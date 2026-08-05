@@ -164,6 +164,10 @@ int main()
                 transactionController.transactions().size() == 2 &&
                 transactionController.canWrite(),
             "owner loads transactions with write access");
+    require(transactionController.transactions().front().toMap()
+                .value(QStringLiteral("dateText")).toString() ==
+                    QStringLiteral("01/08/26"),
+            "transaction dates use the short GUI display format");
     require(!transactionController.addTransaction(
                 cellId, "INCOME", "Invalid", "1.234", "2026-08-03",
                 categories.front().getCategoryId()),
