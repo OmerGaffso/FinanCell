@@ -7,6 +7,7 @@
 #include "application/CellService.h"
 #include "application/CategoryService.h"
 #include "application/TransactionService.h"
+#include "application/MonthlyReportService.h"
 #include "storage/sqlite/SQLiteCategoryRepository.h"
 #include "storage/sqlite/SQLiteCellRepository.h"
 #include "storage/sqlite/SQLiteDatabase.h"
@@ -17,6 +18,7 @@
 #include "ui/qt/controllers/CategoryController.h"
 #include "ui/qt/controllers/MemberController.h"
 #include "ui/qt/controllers/TransactionController.h"
+#include "ui/qt/controllers/ReportController.h"
 #include "ui/qt/session/SessionState.h"
 
 namespace
@@ -43,6 +45,7 @@ int main()
     CategoryService categoryService(categoryRepository, cellRepository);
     TransactionService transactionService(
         transactionRepository, cellRepository, categoryRepository);
+    MonthlyReportService reportService(transactionRepository, cellRepository);
 
     require(
         userRepository.insertUser("owner", "Cell Owner", "unused-test-hash"),
@@ -59,6 +62,7 @@ int main()
     MemberController memberController(cellService, session);
     CategoryController categoryController(categoryService, cellService, session);
     TransactionController transactionController(transactionService, cellService, session);
+    ReportController reportController(reportService, cellService, session);
     require(!controller.loadCells(), "logged-out users cannot load cells");
 
     session.setUser(
@@ -182,6 +186,13 @@ int main()
         .value("transactionId").toULongLong();
     require(transactionController.deleteTransaction(cellId, deleteId),
             "owner deletes a transaction through the controller");
+    require(!reportController.generateReport(cellId, "2026-13"),
+            "report controller rejects an invalid month");
+    require(reportController.generateReport(cellId, "2026-08") &&
+                reportController.totalIncomeText() == "125.00 ILS" &&
+                reportController.totalExpensesText() == "200.00 ILS" &&
+                reportController.balanceText() == "-75.00 ILS",
+            "report controller exposes monthly totals and balance");
 
     std::cout << "Qt cell controller tests passed.\n";
     return 0;

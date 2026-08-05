@@ -10,6 +10,7 @@ Page {
     signal membersRequested()
     signal categoriesRequested()
     signal transactionsRequested()
+    signal reportRequested()
 
     background: Rectangle {
         color: brand.background
@@ -131,6 +132,14 @@ Page {
             flat: true
             palette.buttonText: brand.greenDark
             onClicked: page.categoriesRequested()
+        }
+
+        Button {
+            Layout.fillWidth: true
+            text: qsTr("Monthly report")
+            flat: true
+            palette.buttonText: brand.greenDark
+            onClicked: page.reportRequested()
         }
 
         Item {

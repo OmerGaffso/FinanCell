@@ -32,6 +32,7 @@ ApplicationWindow {
                                          && memberController !== null
                                          && categoryController !== null
                                          && transactionController !== null
+                                         && reportController !== null
 
     StackView {
         id: stackView
@@ -111,10 +112,21 @@ ApplicationWindow {
             onMembersRequested: stackView.push(memberPageComponent)
             onCategoriesRequested: stackView.push(categoryPageComponent)
             onTransactionsRequested: stackView.push(transactionPageComponent)
+            onReportRequested: stackView.push(monthlyReportPageComponent)
             onBackRequested: {
                 stackView.pop()
                 cellController.clearSelection()
             }
+        }
+    }
+
+    Component {
+        id: monthlyReportPageComponent
+
+        MonthlyReportPage {
+            controller: reportController
+            cellController: cellController
+            onBackRequested: stackView.pop()
         }
     }
 

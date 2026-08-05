@@ -15,6 +15,7 @@
 #include "application/CellService.h"
 #include "application/CategoryService.h"
 #include "application/TransactionService.h"
+#include "application/MonthlyReportService.h"
 #include "application/UserService.h"
 #include "security/PasswordHasher.h"
 #include "storage/sqlite/SQLiteCategoryRepository.h"
@@ -27,6 +28,7 @@
 #include "ui/qt/controllers/CategoryController.h"
 #include "ui/qt/controllers/MemberController.h"
 #include "ui/qt/controllers/TransactionController.h"
+#include "ui/qt/controllers/ReportController.h"
 #include "ui/qt/controllers/UserController.h"
 #include "ui/qt/session/SessionState.h"
 
@@ -45,12 +47,14 @@ int main(int argc, char* argv[])
     std::unique_ptr<CategoryService> categoryService;
     std::unique_ptr<SQLiteTransactionRepository> transactionRepository;
     std::unique_ptr<TransactionService> transactionService;
+    std::unique_ptr<MonthlyReportService> reportService;
     std::unique_ptr<SessionState> session;
     std::unique_ptr<UserController> userController;
     std::unique_ptr<CellController> cellController;
     std::unique_ptr<CategoryController> categoryController;
     std::unique_ptr<MemberController> memberController;
     std::unique_ptr<TransactionController> transactionController;
+    std::unique_ptr<ReportController> reportController;
     QString startupError;
 
     try
@@ -70,6 +74,8 @@ int main(int argc, char* argv[])
             std::make_unique<SQLiteTransactionRepository>(*database);
         transactionService = std::make_unique<TransactionService>(
             *transactionRepository, *cellRepository, *categoryRepository);
+        reportService = std::make_unique<MonthlyReportService>(
+            *transactionRepository, *cellRepository);
         session = std::make_unique<SessionState>();
         userController = std::make_unique<UserController>(*userService, *session);
         cellController = std::make_unique<CellController>(
@@ -79,6 +85,8 @@ int main(int argc, char* argv[])
             *categoryService, *cellService, *session);
         transactionController = std::make_unique<TransactionController>(
             *transactionService, *cellService, *session);
+        reportController = std::make_unique<ReportController>(
+            *reportService, *cellService, *session);
     }
     catch (const std::exception& error)
     {
@@ -99,6 +107,8 @@ int main(int argc, char* argv[])
         QStringLiteral("categoryController"), categoryController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("transactionController"), transactionController.get());
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("reportController"), reportController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("startupError"), startupError);
     const QUrl mainUrl(QStringLiteral("qrc:/qt/qml/FinanCell/Main.qml"));
