@@ -5,6 +5,7 @@
 #include <QVariantMap>
 
 #include "application/CellService.h"
+#include "application/CategoryService.h"
 #include "application/TransactionService.h"
 #include "storage/sqlite/SQLiteCategoryRepository.h"
 #include "storage/sqlite/SQLiteCellRepository.h"
@@ -13,6 +14,7 @@
 #include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 #include "ui/qt/controllers/CellController.h"
+#include "ui/qt/controllers/CategoryController.h"
 #include "ui/qt/controllers/MemberController.h"
 #include "ui/qt/session/SessionState.h"
 
@@ -37,6 +39,7 @@ int main()
     SQLiteCategoryRepository categoryRepository(database);
     SQLiteTransactionRepository transactionRepository(database);
     CellService cellService(cellRepository, userRepository);
+    CategoryService categoryService(categoryRepository, cellRepository);
     TransactionService transactionService(
         transactionRepository, cellRepository, categoryRepository);
 
@@ -53,6 +56,7 @@ int main()
     SessionState session;
     CellController controller(cellService, transactionService, session);
     MemberController memberController(cellService, session);
+    CategoryController categoryController(categoryService, cellService, session);
     require(!controller.loadCells(), "logged-out users cannot load cells");
 
     session.setUser(
@@ -141,6 +145,15 @@ int main()
     require(memberController.removeMember(cellId, other->getUserId()) &&
                 memberController.members().size() == 1,
             "owner removes a cell member");
+    require(categoryController.loadCategories(cellId) &&
+                categoryController.categories().size() == 1 &&
+                categoryController.canCreate(),
+            "owner loads the default category with creation access");
+    require(categoryController.createCategory(cellId, "Food") &&
+                categoryController.categories().size() == 2,
+            "owner creates a category through the Qt controller");
+    require(!categoryController.createCategory(cellId, "food"),
+            "duplicate category is rejected case-insensitively");
 
     std::cout << "Qt cell controller tests passed.\n";
     return 0;

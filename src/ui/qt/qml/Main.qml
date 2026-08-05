@@ -30,6 +30,7 @@ ApplicationWindow {
                                          && userController !== null
                                          && cellController !== null
                                          && memberController !== null
+                                         && categoryController !== null
 
     StackView {
         id: stackView
@@ -107,10 +108,21 @@ ApplicationWindow {
         CellDashboardPage {
             controller: cellController
             onMembersRequested: stackView.push(memberPageComponent)
+            onCategoriesRequested: stackView.push(categoryPageComponent)
             onBackRequested: {
                 stackView.pop()
                 cellController.clearSelection()
             }
+        }
+    }
+
+    Component {
+        id: categoryPageComponent
+
+        CategoryPage {
+            controller: categoryController
+            cellController: cellController
+            onBackRequested: stackView.pop()
         }
     }
 

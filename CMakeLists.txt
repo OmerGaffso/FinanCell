@@ -80,6 +80,7 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/CreateCellPage.qml
             src/ui/qt/qml/CellDashboardPage.qml
             src/ui/qt/qml/MemberPage.qml
+            src/ui/qt/qml/CategoryPage.qml
             src/ui/qt/qml/UserLookupPage.qml
             src/ui/qt/qml/BrandPalette.qml
         )
@@ -99,6 +100,8 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS CellDashboardPage.qml)
         set_source_files_properties(src/ui/qt/qml/MemberPage.qml
             PROPERTIES QT_RESOURCE_ALIAS MemberPage.qml)
+        set_source_files_properties(src/ui/qt/qml/CategoryPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS CategoryPage.qml)
         set_source_files_properties(src/ui/qt/qml/UserLookupPage.qml
             PROPERTIES QT_RESOURCE_ALIAS UserLookupPage.qml)
         set_source_files_properties(src/ui/qt/qml/BrandPalette.qml
@@ -112,6 +115,8 @@ if(FINANCELL_BUILD_GUI)
             src/gui_main.cpp
             src/ui/qt/controllers/CellController.cpp
             src/ui/qt/controllers/CellController.h
+            src/ui/qt/controllers/CategoryController.cpp
+            src/ui/qt/controllers/CategoryController.h
             src/ui/qt/controllers/MemberController.cpp
             src/ui/qt/controllers/MemberController.h
             src/ui/qt/controllers/UserController.cpp
@@ -146,6 +151,8 @@ if(FINANCELL_BUILD_GUI)
                 tests/QtCellControllerTests.cpp
                 src/ui/qt/controllers/CellController.cpp
                 src/ui/qt/controllers/CellController.h
+                src/ui/qt/controllers/CategoryController.cpp
+                src/ui/qt/controllers/CategoryController.h
                 src/ui/qt/controllers/MemberController.cpp
                 src/ui/qt/controllers/MemberController.h
                 src/ui/qt/session/SessionState.cpp

@@ -8,6 +8,7 @@ Page {
     required property var controller
     signal backRequested()
     signal membersRequested()
+    signal categoriesRequested()
 
     background: Rectangle {
         color: brand.background
@@ -113,6 +114,14 @@ Page {
             palette.button: brand.green
             palette.buttonText: brand.navyDeep
             onClicked: page.membersRequested()
+        }
+
+        Button {
+            Layout.fillWidth: true
+            text: qsTr("Categories")
+            flat: true
+            palette.buttonText: brand.greenDark
+            onClicked: page.categoriesRequested()
         }
 
         Item {
