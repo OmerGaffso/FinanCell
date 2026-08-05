@@ -29,6 +29,7 @@ ApplicationWindow {
     readonly property bool backendReady: startupError.length === 0
                                          && userController !== null
                                          && cellController !== null
+                                         && memberController !== null
 
     StackView {
         id: stackView
@@ -105,9 +106,38 @@ ApplicationWindow {
 
         CellDashboardPage {
             controller: cellController
+            onMembersRequested: stackView.push(memberPageComponent)
             onBackRequested: {
                 stackView.pop()
                 cellController.clearSelection()
+            }
+        }
+    }
+
+    Component {
+        id: memberPageComponent
+
+        MemberPage {
+            controller: memberController
+            cellController: cellController
+            onBackRequested: stackView.pop()
+            onAddRequested: stackView.push(memberLookupPageComponent)
+        }
+    }
+
+    Component {
+        id: memberLookupPageComponent
+
+        UserLookupPage {
+            controller: userController
+            selectionMode: true
+            onBackRequested: stackView.pop()
+            onUserSelected: function(user) {
+                memberController.addMember(
+                    cellController.selectedCell.cellId,
+                    user.userId,
+                    "MEMBER")
+                stackView.pop()
             }
         }
     }

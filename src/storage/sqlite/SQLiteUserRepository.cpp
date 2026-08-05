@@ -77,6 +77,22 @@ std::optional<User> SQLiteUserRepository::findUserByUsername(
         statement.columnText(3));
 }
 
+std::optional<UserSummary> SQLiteUserRepository::findUserSummaryById(
+    std::uint64_t userId) const
+{
+    constexpr char sql[] =
+        "SELECT id, username, display_name FROM users WHERE id = ?;";
+
+    SQLiteStatement statement(m_database, sql);
+    statement.bindUInt64(1, userId);
+    if (!statement.next()) return std::nullopt;
+
+    return UserSummary(
+        statement.columnUInt64(0),
+        statement.columnText(1),
+        statement.columnText(2));
+}
+
 std::vector<UserSummary> SQLiteUserRepository::findUserSummaries(
     const std::string& query,
     std::size_t limit) const

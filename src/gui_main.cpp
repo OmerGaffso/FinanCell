@@ -23,6 +23,7 @@
 #include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 #include "ui/qt/controllers/CellController.h"
+#include "ui/qt/controllers/MemberController.h"
 #include "ui/qt/controllers/UserController.h"
 #include "ui/qt/session/SessionState.h"
 
@@ -43,6 +44,7 @@ int main(int argc, char* argv[])
     std::unique_ptr<SessionState> session;
     std::unique_ptr<UserController> userController;
     std::unique_ptr<CellController> cellController;
+    std::unique_ptr<MemberController> memberController;
     QString startupError;
 
     try
@@ -64,6 +66,7 @@ int main(int argc, char* argv[])
         userController = std::make_unique<UserController>(*userService, *session);
         cellController = std::make_unique<CellController>(
             *cellService, *transactionService, *session);
+        memberController = std::make_unique<MemberController>(*cellService, *session);
     }
     catch (const std::exception& error)
     {
@@ -78,6 +81,8 @@ int main(int argc, char* argv[])
         QStringLiteral("userController"), userController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("cellController"), cellController.get());
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("memberController"), memberController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("startupError"), startupError);
     const QUrl mainUrl(QStringLiteral("qrc:/qt/qml/FinanCell/Main.qml"));

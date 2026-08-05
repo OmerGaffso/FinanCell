@@ -13,6 +13,7 @@
 #include "storage/sqlite/SQLiteTransactionRepository.h"
 #include "storage/sqlite/SQLiteUserRepository.h"
 #include "ui/qt/controllers/CellController.h"
+#include "ui/qt/controllers/MemberController.h"
 #include "ui/qt/session/SessionState.h"
 
 namespace
@@ -51,6 +52,7 @@ int main()
 
     SessionState session;
     CellController controller(cellService, transactionService, session);
+    MemberController memberController(cellService, session);
     require(!controller.loadCells(), "logged-out users cannot load cells");
 
     session.setUser(
@@ -121,6 +123,24 @@ int main()
             "unrelated user cannot list the owner's cell");
     require(!controller.selectCell(cellId),
             "unrelated user cannot select the owner's cell");
+
+    session.setUser(
+        owner->getUserId(),
+        QStringLiteral("owner"),
+        QStringLiteral("Cell Owner"));
+    require(memberController.loadMembers(cellId) &&
+                memberController.members().size() == 1 &&
+                memberController.canManage(),
+            "owner loads and can manage public member summaries");
+    require(memberController.addMember(cellId, other->getUserId(), "MEMBER") &&
+                memberController.members().size() == 2,
+            "owner adds a selected registered user");
+    require(memberController.updateMemberRole(
+                cellId, other->getUserId(), "GUEST"),
+            "owner changes a member role");
+    require(memberController.removeMember(cellId, other->getUserId()) &&
+                memberController.members().size() == 1,
+            "owner removes a cell member");
 
     std::cout << "Qt cell controller tests passed.\n";
     return 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "domain/FinancialCell.h"
+#include "domain/CellMemberSummary.h"
 #include "domain/CellRole.h"
 #include "CellRepository.h"
 #include "UserRepository.h"
@@ -60,6 +61,10 @@ public:
     std::optional<FinancialCell> getCellForUser(uint64_t actingUserId, uint64_t cellId) const;
     /** @brief Returns cell members. @param actingUserId Actor ID. @param cellId Cell ID. @return Members, or an empty list when inaccessible. */
     std::vector<CellMember> getCellMembers(uint64_t actingUserId, uint64_t cellId) const;
+    /** @brief Returns public member identities and roles. @param actingUserId Actor ID. @param cellId Cell ID. @return Member summaries, or empty optional when inaccessible. */
+    std::optional<std::vector<CellMemberSummary>> getCellMemberSummaries(
+        std::uint64_t actingUserId,
+        std::uint64_t cellId) const;
 
     /** @brief Validates a cell name. @param cellName Cell name. @return True when valid. */
     bool isCellNameValid(const std::string& cellName) const;

@@ -6,7 +6,9 @@ Page {
     id: page
 
     required property var controller
+    property bool selectionMode: false
     signal backRequested()
+    signal userSelected(var user)
 
     background: Rectangle {
         color: brand.background
@@ -117,17 +119,16 @@ Page {
                 border.color: brand.border
                 border.width: 1
 
-                ColumnLayout {
+                Column {
                     id: details
 
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.margins: 14
+                    x: 14
+                    y: 14
+                    width: parent.width - 28
                     spacing: 3
 
                     Label {
-                        Layout.fillWidth: true
+                        width: parent.width
                         text: modelData.displayName
                         font.pixelSize: 17
                         font.bold: true
@@ -136,16 +137,25 @@ Page {
                     }
 
                     Label {
-                        Layout.fillWidth: true
+                        width: parent.width
                         text: qsTr("@%1").arg(modelData.username)
                         elide: Text.ElideRight
                         color: brand.greenDark
                     }
 
                     Label {
-                        Layout.fillWidth: true
+                        width: parent.width
                         text: qsTr("User ID: %1").arg(modelData.userId)
                         color: brand.mutedText
+                    }
+
+                    Button {
+                        anchors.right: parent.right
+                        visible: page.selectionMode
+                        text: qsTr("Add")
+                        flat: true
+                        palette.buttonText: brand.greenDark
+                        onClicked: page.userSelected(modelData)
                     }
                 }
             }
