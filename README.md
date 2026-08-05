@@ -56,8 +56,11 @@ The application creates its database at `data/financell.db`.
 
 ## Qt Quick GUI
 
-The first graphical milestone uses Qt 6.2 or newer with the Quick, QML, and
-Quick Controls 2 development components. GUI discovery is enabled by default:
+The graphical application uses Qt 6.2 or newer with the Quick, QML, and Quick
+Controls 2 development components. It currently supports account registration
+and login, user lookup, financial-cell creation and selection, membership and
+role management, categories, transaction CRUD, monthly reports, and owner-only
+cell editing and deletion. GUI discovery is enabled by default:
 
 On Debian, Ubuntu, or Linux Mint, install the development and runtime modules
 with:
