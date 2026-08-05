@@ -9,6 +9,7 @@ Page {
     signal backRequested()
     signal membersRequested()
     signal categoriesRequested()
+    signal transactionsRequested()
 
     background: Rectangle {
         color: brand.background
@@ -110,9 +111,17 @@ Page {
 
         Button {
             Layout.fillWidth: true
-            text: qsTr("Members")
+            text: qsTr("Transactions")
             palette.button: brand.green
             palette.buttonText: brand.navyDeep
+            onClicked: page.transactionsRequested()
+        }
+
+        Button {
+            Layout.fillWidth: true
+            text: qsTr("Members")
+            flat: true
+            palette.buttonText: brand.greenDark
             onClicked: page.membersRequested()
         }
 

@@ -16,6 +16,7 @@
 #include "ui/qt/controllers/CellController.h"
 #include "ui/qt/controllers/CategoryController.h"
 #include "ui/qt/controllers/MemberController.h"
+#include "ui/qt/controllers/TransactionController.h"
 #include "ui/qt/session/SessionState.h"
 
 namespace
@@ -57,6 +58,7 @@ int main()
     CellController controller(cellService, transactionService, session);
     MemberController memberController(cellService, session);
     CategoryController categoryController(categoryService, cellService, session);
+    TransactionController transactionController(transactionService, cellService, session);
     require(!controller.loadCells(), "logged-out users cannot load cells");
 
     session.setUser(
@@ -154,6 +156,32 @@ int main()
             "owner creates a category through the Qt controller");
     require(!categoryController.createCategory(cellId, "food"),
             "duplicate category is rejected case-insensitively");
+    require(transactionController.loadTransactions(cellId) &&
+                transactionController.transactions().size() == 2 &&
+                transactionController.canWrite(),
+            "owner loads transactions with write access");
+    require(!transactionController.addTransaction(
+                cellId, "INCOME", "Invalid", "1.234", "2026-08-03",
+                categories.front().getCategoryId()),
+            "transaction controller rejects excess decimal precision");
+    const auto food = categoryRepository.findCategoryByName(cellId, "Food");
+    require(food && transactionController.addTransaction(
+                cellId, "INCOME", "Refund", "10.50", "2026-08-03",
+                food->getCategoryId()),
+            "transaction controller adds exact income with a category");
+    const QVariantMap editableTransaction =
+        transactionController.transactions().front().toMap();
+    require(transactionController.selectTransaction(
+                editableTransaction.value("transactionId").toULongLong()),
+            "owner selects a transaction for editing");
+    require(transactionController.updateTransaction(
+                cellId, "INCOME", "Updated salary", "125.00", "2026-08-01",
+                categories.front().getCategoryId()),
+            "owner edits a transaction through the controller");
+    const qulonglong deleteId = transactionController.transactions().back().toMap()
+        .value("transactionId").toULongLong();
+    require(transactionController.deleteTransaction(cellId, deleteId),
+            "owner deletes a transaction through the controller");
 
     std::cout << "Qt cell controller tests passed.\n";
     return 0;

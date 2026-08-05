@@ -26,6 +26,7 @@
 #include "ui/qt/controllers/CellController.h"
 #include "ui/qt/controllers/CategoryController.h"
 #include "ui/qt/controllers/MemberController.h"
+#include "ui/qt/controllers/TransactionController.h"
 #include "ui/qt/controllers/UserController.h"
 #include "ui/qt/session/SessionState.h"
 
@@ -49,6 +50,7 @@ int main(int argc, char* argv[])
     std::unique_ptr<CellController> cellController;
     std::unique_ptr<CategoryController> categoryController;
     std::unique_ptr<MemberController> memberController;
+    std::unique_ptr<TransactionController> transactionController;
     QString startupError;
 
     try
@@ -75,6 +77,8 @@ int main(int argc, char* argv[])
         memberController = std::make_unique<MemberController>(*cellService, *session);
         categoryController = std::make_unique<CategoryController>(
             *categoryService, *cellService, *session);
+        transactionController = std::make_unique<TransactionController>(
+            *transactionService, *cellService, *session);
     }
     catch (const std::exception& error)
     {
@@ -93,6 +97,8 @@ int main(int argc, char* argv[])
         QStringLiteral("memberController"), memberController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("categoryController"), categoryController.get());
+    engine.rootContext()->setContextProperty(
+        QStringLiteral("transactionController"), transactionController.get());
     engine.rootContext()->setContextProperty(
         QStringLiteral("startupError"), startupError);
     const QUrl mainUrl(QStringLiteral("qrc:/qt/qml/FinanCell/Main.qml"));

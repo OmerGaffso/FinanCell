@@ -31,6 +31,7 @@ ApplicationWindow {
                                          && cellController !== null
                                          && memberController !== null
                                          && categoryController !== null
+                                         && transactionController !== null
 
     StackView {
         id: stackView
@@ -109,10 +110,38 @@ ApplicationWindow {
             controller: cellController
             onMembersRequested: stackView.push(memberPageComponent)
             onCategoriesRequested: stackView.push(categoryPageComponent)
+            onTransactionsRequested: stackView.push(transactionPageComponent)
             onBackRequested: {
                 stackView.pop()
                 cellController.clearSelection()
             }
+        }
+    }
+
+    Component {
+        id: transactionPageComponent
+
+        TransactionPage {
+            controller: transactionController
+            cellController: cellController
+            onBackRequested: stackView.pop()
+            onAddRequested: stackView.push(transactionFormPageComponent)
+            onEditRequested: stackView.push(transactionFormPageComponent)
+        }
+    }
+
+    Component {
+        id: transactionFormPageComponent
+
+        TransactionFormPage {
+            controller: transactionController
+            categoryController: categoryController
+            cellController: cellController
+            onBackRequested: {
+                transactionController.clearSelection()
+                stackView.pop()
+            }
+            onSaved: stackView.pop()
         }
     }
 
