@@ -100,6 +100,9 @@ ctest --test-dir build --output-on-failure
 
 When the Qt Quick Test component is available, CTest also runs the complete GUI
 navigation flow offscreen and fails on controller binding or QML runtime errors.
+The normal suite also runs `qmllint`; its project settings retain syntax,
+required-property, alias, deprecation, and inheritance checks while disabling
+Qt 6.2 metadata diagnostics that incorrectly flag valid Qt Quick Controls types.
 
 ## Generate documentation
 

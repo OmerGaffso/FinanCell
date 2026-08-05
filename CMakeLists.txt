@@ -241,6 +241,10 @@ if(FINANCELL_BUILD_GUI)
                 add_test(NAME QmlNavigation COMMAND FinanCellQmlSmokeTests)
                 set_tests_properties(QmlNavigation PROPERTIES ENVIRONMENT
                     "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Basic")
+                add_test(NAME QmlLint
+                    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
+                        --target FinanCellGui_qmllint)
+                set_tests_properties(QmlLint PROPERTIES RUN_SERIAL TRUE)
             else()
                 message(WARNING
                     "Qt Quick Test was not found. GUI navigation smoke tests will not be built.")
