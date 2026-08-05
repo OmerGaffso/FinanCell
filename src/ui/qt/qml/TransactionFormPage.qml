@@ -6,12 +6,12 @@ Page {
     id: page
     required property var controller
     required property var categoryController
-    required property var cellController
+    required property var cellState
     signal backRequested()
     signal saved()
 
     readonly property bool editMode: controller.hasSelectedTransaction
-    readonly property var selectedCell: cellController.selectedCell
+    readonly property var selectedCell: cellState.selectedCell
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
 

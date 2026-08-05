@@ -140,7 +140,7 @@ ApplicationWindow {
 
         MonthlyReportPage {
             controller: reportController
-            cellController: cellController
+            cellState: cellController
             onBackRequested: stackView.pop()
         }
     }
@@ -150,7 +150,7 @@ ApplicationWindow {
 
         TransactionPage {
             controller: transactionController
-            cellController: cellController
+            cellState: cellController
             onBackRequested: stackView.pop()
             onAddRequested: stackView.push(transactionFormPageComponent)
             onEditRequested: stackView.push(transactionFormPageComponent)
@@ -163,7 +163,7 @@ ApplicationWindow {
         TransactionFormPage {
             controller: transactionController
             categoryController: categoryController
-            cellController: cellController
+            cellState: cellController
             onBackRequested: {
                 transactionController.clearSelection()
                 stackView.pop()
@@ -177,7 +177,7 @@ ApplicationWindow {
 
         CategoryPage {
             controller: categoryController
-            cellController: cellController
+            cellState: cellController
             onBackRequested: stackView.pop()
         }
     }
@@ -187,7 +187,7 @@ ApplicationWindow {
 
         MemberPage {
             controller: memberController
-            cellController: cellController
+            cellState: cellController
             onBackRequested: stackView.pop()
             onAddRequested: stackView.push(memberLookupPageComponent)
         }

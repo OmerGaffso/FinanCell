@@ -6,11 +6,11 @@ Page {
     id: page
 
     required property var controller
-    required property var cellController
+    required property var cellState
     signal backRequested()
     signal addRequested()
 
-    readonly property var selectedCell: cellController.selectedCell
+    readonly property var selectedCell: cellState.selectedCell
 
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
