@@ -193,6 +193,33 @@ if(FINANCELL_BUILD_GUI)
             financell_enable_warnings(FinanCellQtCellControllerTests)
             add_test(NAME QtCellController COMMAND FinanCellQtCellControllerTests)
 
+            add_executable(FinanCellGuiMvpAcceptanceTests
+                tests/GuiMvpAcceptanceTests.cpp
+                src/ui/qt/controllers/CellController.cpp
+                src/ui/qt/controllers/CellController.h
+                src/ui/qt/controllers/CategoryController.cpp
+                src/ui/qt/controllers/CategoryController.h
+                src/ui/qt/controllers/MemberController.cpp
+                src/ui/qt/controllers/MemberController.h
+                src/ui/qt/controllers/TransactionController.cpp
+                src/ui/qt/controllers/TransactionController.h
+                src/ui/qt/controllers/ReportController.cpp
+                src/ui/qt/controllers/ReportController.h
+                src/ui/qt/controllers/UserController.cpp
+                src/ui/qt/controllers/UserController.h
+                src/ui/qt/session/SessionState.cpp
+                src/ui/qt/session/SessionState.h
+            )
+            set_target_properties(FinanCellGuiMvpAcceptanceTests PROPERTIES AUTOMOC ON)
+            target_include_directories(FinanCellGuiMvpAcceptanceTests
+                PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+            target_link_libraries(FinanCellGuiMvpAcceptanceTests PRIVATE
+                FinanCellCore
+                Qt6::Core
+            )
+            financell_enable_warnings(FinanCellGuiMvpAcceptanceTests)
+            add_test(NAME GuiMvpAcceptance COMMAND FinanCellGuiMvpAcceptanceTests)
+
             if(TARGET Qt6::QuickTest)
                 add_executable(FinanCellQmlSmokeTests
                     tests/qml/QmlSmokeTestMain.cpp
