@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
 
     required property var controller
     required property var cellState
@@ -16,6 +17,7 @@ Page {
     BrandPalette { id: brand }
 
     Component.onCompleted: controller.loadMembers(selectedCell.cellId)
+    Keys.onEscapePressed: page.backRequested()
 
     ColumnLayout {
         anchors.fill: parent
@@ -125,6 +127,13 @@ Page {
                     }
                 }
             }
+
+            Label {
+                anchors.centerIn: parent
+                visible: memberList.count === 0 && controller.errorMessage.length === 0
+                text: qsTr("No members are available for this cell.")
+                color: brand.mutedText
+            }
         }
     }
 
@@ -135,6 +144,7 @@ Page {
         anchors.centerIn: parent
         modal: true
         title: qsTr("Remove member?")
+        Accessible.name: title
         standardButtons: Dialog.Ok | Dialog.Cancel
         Label {
             text: qsTr("Remove %1 from this financial cell?").arg(

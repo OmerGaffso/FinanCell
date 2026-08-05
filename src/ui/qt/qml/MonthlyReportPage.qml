@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
     required property var controller
     required property var cellState
     signal backRequested()
@@ -12,6 +13,7 @@ Page {
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
     Component.onCompleted: controller.clearReport()
+    Keys.onEscapePressed: page.backRequested()
 
     ColumnLayout {
         anchors.fill: parent
@@ -62,6 +64,14 @@ Page {
             text: controller.errorMessage
             color: brand.danger
             wrapMode: Text.WordWrap
+        }
+
+        Label {
+            Layout.fillWidth: true
+            visible: !controller.hasReport && controller.errorMessage.length === 0
+            text: qsTr("Choose a month and generate a report to see income, expenses, balance, and category totals.")
+            wrapMode: Text.WordWrap
+            color: brand.mutedText
         }
 
         GridLayout {

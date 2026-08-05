@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
 
     required property var controller
     signal backRequested()
@@ -17,7 +18,12 @@ Page {
         id: brand
     }
 
-    Component.onCompleted: controller.clearError()
+    Keys.onEscapePressed: page.backRequested()
+
+    Component.onCompleted: {
+        controller.clearError()
+        nameField.forceActiveFocus()
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -63,8 +69,17 @@ Page {
                 id: nameField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Cell name")
+                Accessible.name: qsTr("Financial cell name")
                 maximumLength: 50
                 onTextEdited: controller.clearError()
+            }
+
+            Label {
+                Layout.fillWidth: true
+                visible: nameField.text.length > 0 && nameField.text.trim().length < 3
+                text: qsTr("Use at least 3 characters for the cell name.")
+                color: brand.danger
+                wrapMode: Text.WordWrap
             }
 
             TextArea {
@@ -72,6 +87,7 @@ Page {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 120
                 placeholderText: qsTr("Description (optional)")
+                Accessible.name: qsTr("Financial cell description")
                 wrapMode: TextEdit.Wrap
                 selectByMouse: true
                 onTextChanged: {

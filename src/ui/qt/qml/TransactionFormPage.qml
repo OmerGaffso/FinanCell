@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
     required property var controller
     required property var categoryState
     required property var cellState
@@ -11,9 +12,12 @@ Page {
     signal saved()
 
     readonly property bool editMode: controller.hasSelectedTransaction
+    readonly property bool amountValid: /^\d+(\.\d{1,2})?$/.test(
+                                            amountField.text.trim())
     readonly property var selectedCell: cellState.selectedCell
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
+    Keys.onEscapePressed: page.backRequested()
 
     Component.onCompleted: {
         categoryState.loadCategories(selectedCell.cellId)
@@ -63,6 +67,7 @@ Page {
                 id: descriptionField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Description")
+                Accessible.name: qsTr("Transaction description")
                 maximumLength: 200
                 onTextEdited: controller.clearError()
             }
@@ -70,8 +75,16 @@ Page {
                 id: amountField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Amount, for example 12.34")
+                Accessible.name: qsTr("Transaction amount")
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
                 onTextEdited: controller.clearError()
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: amountField.text.length > 0 && !page.amountValid
+                text: qsTr("Enter a positive amount with no more than two decimal places.")
+                color: brand.danger
+                wrapMode: Text.WordWrap
             }
             DateSelector {
                 id: dateSelector
@@ -97,7 +110,7 @@ Page {
                 Layout.fillWidth: true
                 text: page.editMode ? qsTr("Save changes") : qsTr("Add transaction")
                 enabled: descriptionField.text.trim().length > 0 &&
-                         amountField.text.trim().length > 0 &&
+                         page.amountValid &&
                          categoryBox.currentIndex >= 0
                 palette.button: brand.green
                 palette.buttonText: brand.navyDeep

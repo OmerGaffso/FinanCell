@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
 
     required property var controller
     property bool selectionMode: false
@@ -18,7 +19,12 @@ Page {
         id: brand
     }
 
-    Component.onCompleted: controller.searchUsers("")
+    Keys.onEscapePressed: page.backRequested()
+
+    Component.onCompleted: {
+        controller.searchUsers("")
+        searchField.forceActiveFocus()
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -71,6 +77,7 @@ Page {
                 id: searchField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Search users")
+                Accessible.name: qsTr("Search registered users")
                 maximumLength: 50
                 inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
                 onTextEdited: controller.clearError()

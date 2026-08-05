@@ -4,12 +4,14 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
     required property var controller
     signal backRequested()
     signal cellDeleted()
 
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
+    Keys.onEscapePressed: page.backRequested()
 
     ScrollView {
         anchors.fill: parent
@@ -32,6 +34,7 @@ Page {
                 Layout.fillWidth: true
                 text: controller.hasSelectedCell ? controller.selectedCell.name : ""
                 placeholderText: qsTr("Cell name")
+                Accessible.name: qsTr("Financial cell name")
                 maximumLength: 50
                 onTextEdited: controller.clearError()
             }
@@ -41,6 +44,7 @@ Page {
                 Layout.preferredHeight: 120
                 text: controller.hasSelectedCell ? controller.selectedCell.description : ""
                 placeholderText: qsTr("Description")
+                Accessible.name: qsTr("Financial cell description")
                 wrapMode: TextEdit.Wrap
                 onTextChanged: {
                     if (length > 200) remove(200, length)
@@ -89,6 +93,7 @@ Page {
             Button {
                 Layout.fillWidth: true
                 text: qsTr("Delete this financial cell")
+                Accessible.description: qsTr("Permanently delete this cell and all of its records")
                 palette.button: brand.danger
                 palette.buttonText: "white"
                 onClicked: deleteDialog.open()
@@ -108,6 +113,7 @@ Page {
         anchors.centerIn: parent
         modal: true
         title: qsTr("Delete financial cell?")
+        Accessible.name: title
         standardButtons: Dialog.Ok | Dialog.Cancel
         Label {
             width: Math.min(300, implicitWidth)

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
     required property var controller
     required property var cellState
     signal backRequested()
@@ -12,6 +13,7 @@ Page {
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
     Component.onCompleted: controller.loadCategories(selectedCell.cellId)
+    Keys.onEscapePressed: page.backRequested()
 
     ColumnLayout {
         anchors.fill: parent
@@ -42,6 +44,7 @@ Page {
                 id: nameField
                 Layout.fillWidth: true
                 placeholderText: qsTr("New category")
+                Accessible.name: qsTr("New category name")
                 maximumLength: 50
                 onTextEdited: controller.clearError()
                 onAccepted: createButton.clicked()
@@ -90,6 +93,13 @@ Page {
                     font.pixelSize: 17
                     color: brand.navy
                 }
+            }
+
+            Label {
+                anchors.centerIn: parent
+                visible: categoryList.count === 0 && controller.errorMessage.length === 0
+                text: qsTr("No categories are available for this cell.")
+                color: brand.mutedText
             }
         }
     }

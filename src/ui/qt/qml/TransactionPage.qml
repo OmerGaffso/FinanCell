@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
     required property var controller
     required property var cellState
     signal backRequested()
@@ -14,6 +15,7 @@ Page {
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
     Component.onCompleted: controller.loadTransactions(selectedCell.cellId)
+    Keys.onEscapePressed: page.backRequested()
 
     ColumnLayout {
         anchors.fill: parent
@@ -188,6 +190,7 @@ Page {
         anchors.centerIn: parent
         modal: true
         title: qsTr("Delete transaction?")
+        Accessible.name: title
         standardButtons: Dialog.Ok | Dialog.Cancel
         Label { text: qsTr("This transaction will be permanently deleted.") }
         onAccepted: controller.deleteTransaction(
