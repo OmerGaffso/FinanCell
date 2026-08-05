@@ -5,7 +5,7 @@ import QtQuick.Layouts
 Page {
     id: page
     required property var controller
-    required property var categoryController
+    required property var categoryState
     required property var cellState
     signal backRequested()
     signal saved()
@@ -16,7 +16,7 @@ Page {
     BrandPalette { id: brand }
 
     Component.onCompleted: {
-        categoryController.loadCategories(selectedCell.cellId)
+        categoryState.loadCategories(selectedCell.cellId)
         if (editMode) {
             typeBox.currentIndex = controller.selectedTransaction.type === "EXPENSE" ? 1 : 0
             descriptionField.text = controller.selectedTransaction.description
@@ -82,7 +82,7 @@ Page {
             ComboBox {
                 id: categoryBox
                 Layout.fillWidth: true
-                model: categoryController.categories
+                model: categoryState.categories
                 textRole: "name"
                 valueRole: "categoryId"
             }

@@ -162,7 +162,7 @@ ApplicationWindow {
 
         TransactionFormPage {
             controller: transactionController
-            categoryController: categoryController
+            categoryState: categoryController
             cellState: cellController
             onBackRequested: {
                 transactionController.clearSelection()
