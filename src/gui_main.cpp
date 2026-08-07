@@ -129,4 +129,3 @@ int main(int argc, char* argv[])
     engine.load(mainUrl);
     return application.exec();
 }
-#include "storage/sqlite/SQLiteCellRepository.h"
