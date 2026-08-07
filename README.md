@@ -8,7 +8,7 @@ integer minor units for exact monetary calculations.
 
 - Account registration and login with normalized usernames and hashed passwords.
 - Financial-cell creation, listing, selection, editing, and deletion.
-- Owner-managed membership with `OWNER`, `MEMBER`, and read-only `GUEST` roles.
+- Shared management with `MANAGER`, `MEMBER`, and read-only `GUEST` roles.
 - Managed, reusable categories scoped to each financial cell.
 - Optional recurring monthly budgets for each category.
 - Income and expense CRUD with descriptions, exact amounts, calendar dates, and
@@ -21,7 +21,7 @@ integer minor units for exact monetary calculations.
 
 ## Roles
 
-| Capability | Owner | Member | Guest |
+| Capability | Manager | Member | Guest |
 | --- | :---: | :---: | :---: |
 | View cells, members, transactions, and reports | Yes | Yes | Yes |
 | View categories | Yes | Yes | Yes |
@@ -29,7 +29,9 @@ integer minor units for exact monetary calculations.
 | Add transactions | Yes | Yes | No |
 | Edit or delete own transactions | Yes | Yes | No |
 | Edit or delete any transaction in the cell | Yes | No | No |
-| Manage members or cell details | Yes | No | No |
+| Add users as members or guests | Yes | Yes | No |
+| Promote, demote, or remove existing users | Yes | No | No |
+| Edit or delete cell details | Yes | No | No |
 
 ## Dependencies
 
@@ -60,8 +62,8 @@ The application creates its database at `data/financell.db`.
 The graphical application uses Qt 6.2 or newer with the Quick, QML, and Quick
 Controls 2 development components. It currently supports account registration
 and login, user lookup, financial-cell creation and selection, membership and
-    role management, category budgets, transaction CRUD, monthly reports, and owner-only
-cell editing and deletion. GUI discovery is enabled by default:
+role management, category budgets, transaction CRUD, monthly reports, and
+manager-only cell editing and deletion. GUI discovery is enabled by default:
 
 On Debian, Ubuntu, or Linux Mint, install the development and runtime modules
 with:

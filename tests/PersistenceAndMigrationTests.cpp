@@ -53,9 +53,19 @@ void createVersionFourFixture(SQLiteDatabase& database)
 {
     database.execute(Schema::CREATE_USERS_TABLE);
     database.execute(Schema::CREATE_CELLS_TABLE);
-    database.execute(Schema::CREATE_CELL_MEMBERS_TABLE);
+    database.execute(
+        "CREATE TABLE cell_members ("
+        "cell_id INTEGER NOT NULL, user_id INTEGER NOT NULL, "
+        "role TEXT NOT NULL CHECK(role IN ('OWNER', 'MEMBER', 'GUEST')), "
+        "joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+        "PRIMARY KEY (cell_id, user_id), "
+        "FOREIGN KEY (cell_id) REFERENCES cells(id) ON DELETE CASCADE, "
+        "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE);");
     database.execute(Schema::CREATE_CELL_MEMBERS_USER_INDEX);
-    database.execute(Schema::CREATE_CELL_OWNER_MEMBERSHIP_TRIGGER);
+    database.execute(
+        "CREATE TRIGGER add_cell_owner_membership AFTER INSERT ON cells BEGIN "
+        "INSERT INTO cell_members (cell_id, user_id, role) "
+        "VALUES (NEW.id, NEW.owner_user_id, 'OWNER'); END;");
     database.execute(Schema::CREATE_TRANSACTIONS_TABLE);
     database.execute(Schema::CREATE_TRANSACTIONS_CELL_INDEX);
     database.execute(Schema::ADD_TRANSACTION_CATEGORY);
@@ -87,7 +97,11 @@ void testVersionFourMigration()
     SQLiteMigrations::apply(database);
 
     SQLiteStatement version(database, "PRAGMA user_version;");
-    require(version.next() && version.columnUInt64(0) == 6, "schema upgraded to v6");
+    require(version.next() && version.columnUInt64(0) == 7, "schema upgraded to v7");
+
+    SQLiteCellRepository migratedCells(database);
+    require(migratedCells.findMember(7, 1)->role == CellRole::MANAGER,
+            "legacy owner membership migrates to manager");
 
     SQLiteCategoryRepository categories(database);
     SQLiteTransactionRepository transactions(database);

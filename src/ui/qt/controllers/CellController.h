@@ -21,7 +21,7 @@ class CellController final : public QObject
     Q_PROPERTY(QVariantMap selectedCell READ selectedCell NOTIFY selectedCellChanged)
     /** @brief Whether an accessible financial cell is selected. */
     Q_PROPERTY(bool hasSelectedCell READ hasSelectedCell NOTIFY selectedCellChanged)
-    /** @brief Whether the active user owns the selected financial cell. */
+    /** @brief Whether the active user manages the selected financial cell. */
     Q_PROPERTY(bool canManageSelectedCell READ canManageSelectedCell NOTIFY selectedCellChanged)
 
 public:
@@ -40,7 +40,7 @@ public:
     QVariantMap selectedCell() const;
     /** @brief Returns whether a financial cell is selected. @return True when selected. */
     bool hasSelectedCell() const;
-    /** @brief Returns whether the active user owns the selected cell. */
+    /** @brief Returns whether the active user manages the selected cell. */
     bool canManageSelectedCell() const;
 
     /** @brief Loads cells available to the active user. @return True when loading completed. */

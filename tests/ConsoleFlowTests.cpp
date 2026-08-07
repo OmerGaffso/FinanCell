@@ -63,9 +63,9 @@ public:
     }
     bool updateCell(const FinancialCell& cell) override { return m_delegate.updateCell(cell); }
     bool deleteCell(std::uint64_t cellId) override { return m_delegate.deleteCell(cellId); }
-    std::vector<FinancialCell> findCellsByOwnerId(std::uint64_t ownerId) const override
+    std::vector<FinancialCell> findCellsByCreatorId(std::uint64_t creatorId) const override
     {
-        return m_delegate.findCellsByOwnerId(ownerId);
+        return m_delegate.findCellsByCreatorId(creatorId);
     }
     std::vector<FinancialCell> findAllCells() const override
     {

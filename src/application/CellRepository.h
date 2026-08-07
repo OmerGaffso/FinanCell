@@ -22,9 +22,9 @@ public:
     virtual bool updateCell(const FinancialCell& cell) = 0;
     /** @brief Deletes a cell. @param cellId Cell ID. @return True when deleted. */
     virtual bool deleteCell(std::uint64_t cellId) = 0;
-    /** @brief Finds cells owned by a user. @param ownerId Owner ID. @return Owned cells. */
-    virtual std::vector<FinancialCell> findCellsByOwnerId(
-        std::uint64_t ownerId) const = 0;
+    /** @brief Finds cells originally created by a user. @param creatorId Creator ID. @return Created cells. */
+    virtual std::vector<FinancialCell> findCellsByCreatorId(
+        std::uint64_t creatorId) const = 0;
     /** @brief Returns every cell. @return All stored cells. */
     virtual std::vector<FinancialCell> findAllCells() const = 0;
     /** @brief Inserts a membership. @param member Membership data. @return True when inserted. */

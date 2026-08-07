@@ -22,8 +22,8 @@ const char* cellRoleToText(CellRole role)
 {
     switch (role)
     {
-        case CellRole::OWNER:
-            return "OWNER";
+        case CellRole::MANAGER:
+            return "MANAGER";
         case CellRole::MEMBER:
             return "MEMBER";
         case CellRole::GUEST:
@@ -35,9 +35,9 @@ const char* cellRoleToText(CellRole role)
 
 CellRole cellRoleFromText(const std::string& role)
 {
-    if (role == "OWNER")
+    if (role == "MANAGER")
     {
-        return CellRole::OWNER;
+        return CellRole::MANAGER;
     }
     if (role == "MEMBER")
     {
@@ -76,7 +76,7 @@ std::optional<FinancialCell> SQLiteCellRepository::insertCell(
     statement.bindText(1, cell.getCellName());
     statement.bindText(2, cell.getCellDescription());
     statement.bindText(3, cell.getCurrency());
-    statement.bindUInt64(4, cell.getOwnerId());
+    statement.bindUInt64(4, cell.getCreatorId());
     statement.execute();
 
     return FinancialCell(
@@ -84,7 +84,7 @@ std::optional<FinancialCell> SQLiteCellRepository::insertCell(
         cell.getCellName(),
         cell.getCellDescription(),
         cell.getCurrency(),
-        cell.getOwnerId());
+        cell.getCreatorId());
 }
 
 std::optional<FinancialCell> SQLiteCellRepository::findCellById(
@@ -128,15 +128,15 @@ bool SQLiteCellRepository::deleteCell(std::uint64_t cellId)
     return m_database.changedRowCount() > 0;
 }
 
-std::vector<FinancialCell> SQLiteCellRepository::findCellsByOwnerId(
-    std::uint64_t ownerId) const
+std::vector<FinancialCell> SQLiteCellRepository::findCellsByCreatorId(
+    std::uint64_t creatorId) const
 {
     constexpr char sql[] =
         "SELECT id, name, description, currency, owner_user_id "
         "FROM cells WHERE owner_user_id = ? ORDER BY id;";
 
     SQLiteStatement statement(m_database, sql);
-    statement.bindUInt64(1, ownerId);
+    statement.bindUInt64(1, creatorId);
 
     std::vector<FinancialCell> cells;
     while (statement.next())

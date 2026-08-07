@@ -15,6 +15,8 @@ class MemberController final : public QObject
     Q_PROPERTY(QVariantList members READ members NOTIFY membersChanged)
     /** @brief Whether the active user can manage the loaded membership. */
     Q_PROPERTY(bool canManage READ canManage NOTIFY membersChanged)
+    /** @brief Whether the active user can add members or guests. */
+    Q_PROPERTY(bool canAddMembers READ canAddMembers NOTIFY membersChanged)
     /** @brief Latest user-facing membership error. */
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
 
@@ -27,19 +29,21 @@ public:
 
     /** @brief Returns loaded member summaries. @return Member maps for QML. */
     QVariantList members() const;
-    /** @brief Returns whether the active user is the cell owner. @return True for the owner. */
+    /** @brief Returns whether the active user is a manager. @return True for a manager. */
     bool canManage() const;
+    /** @brief Returns whether the active user may add members or guests. */
+    bool canAddMembers() const;
     /** @brief Returns the latest failure. @return Error text, or empty. */
     QString errorMessage() const;
 
     /** @brief Loads members of an accessible cell. @param cellId Cell ID. @return True when loaded. */
     Q_INVOKABLE bool loadMembers(qulonglong cellId);
-    /** @brief Adds a registered user to a cell. @param cellId Cell ID. @param userId User ID. @param role MEMBER or GUEST. @return True on success. */
+    /** @brief Adds a registered user to a cell. @param cellId Cell ID. @param userId User ID. @param role MANAGER, MEMBER, or GUEST. @return True on success. */
     Q_INVOKABLE bool addMember(
         qulonglong cellId,
         qulonglong userId,
         const QString& role);
-    /** @brief Changes a member role. @param cellId Cell ID. @param userId User ID. @param role MEMBER or GUEST. @return True on success. */
+    /** @brief Changes a member role. @param cellId Cell ID. @param userId User ID. @param role MANAGER, MEMBER, or GUEST. @return True on success. */
     Q_INVOKABLE bool updateMemberRole(
         qulonglong cellId,
         qulonglong userId,
@@ -64,5 +68,6 @@ private:
     SessionState& m_session;
     QVariantList m_members;
     bool m_canManage{false};
+    bool m_canAddMembers{false};
     QString m_errorMessage;
 };

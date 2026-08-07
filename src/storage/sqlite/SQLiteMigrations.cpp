@@ -92,8 +92,8 @@ void SQLiteMigrations::apply(SQLiteDatabase& database)
             {
                 database.execute(Schema::CREATE_CELL_MEMBERS_TABLE);
                 database.execute(Schema::CREATE_CELL_MEMBERS_USER_INDEX);
-                database.execute(Schema::CREATE_CELL_OWNER_MEMBERSHIP_TRIGGER);
-                database.execute(Schema::BACKFILL_CELL_OWNER_MEMBERSHIPS);
+                database.execute(Schema::CREATE_CELL_MANAGER_MEMBERSHIP_TRIGGER);
+                database.execute(Schema::BACKFILL_CELL_MANAGER_MEMBERSHIPS);
             });
         version = 2;
     }
@@ -149,6 +149,24 @@ void SQLiteMigrations::apply(SQLiteDatabase& database)
         applyMigration(database, 6, [&database]
         {
             database.execute(Schema::ADD_CATEGORY_MONTHLY_BUDGET);
+        });
+        version = 6;
+    }
+
+    if (version < 7)
+    {
+        applyMigration(database, 7, [&database]
+        {
+            database.execute(Schema::DROP_LEGACY_CELL_MANAGER_TRIGGER);
+            database.execute(Schema::DROP_CELL_MANAGER_TRIGGER);
+            database.execute(Schema::DROP_TRANSACTION_CREATOR_MEMBERSHIP_TRIGGER);
+            database.execute(Schema::CREATE_CELL_MEMBERS_V7_TABLE);
+            database.execute(Schema::COPY_CELL_MEMBERS_TO_V7);
+            database.execute(Schema::DROP_LEGACY_CELL_MEMBERS);
+            database.execute(Schema::RENAME_CELL_MEMBERS_V7);
+            database.execute(Schema::CREATE_CELL_MEMBERS_USER_INDEX);
+            database.execute(Schema::CREATE_CELL_MANAGER_MEMBERSHIP_TRIGGER);
+            database.execute(Schema::CREATE_TRANSACTION_CREATOR_MEMBERSHIP_TRIGGER);
         });
     }
 }

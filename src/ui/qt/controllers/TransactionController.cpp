@@ -138,13 +138,13 @@ bool TransactionController::loadTransactions(
         }
 
         bool canWrite = false;
-        bool isOwner = false;
+        bool isManager = false;
         for (const auto& member : m_cellService.getCellMembers(m_session.userId(), cellId))
         {
             if (member.userId == m_session.userId())
             {
                 canWrite = member.role != CellRole::GUEST;
-                isOwner = member.role == CellRole::OWNER;
+                isManager = member.role == CellRole::MANAGER;
             }
         }
 
@@ -175,7 +175,7 @@ bool TransactionController::loadTransactions(
             value.insert(QStringLiteral("categoryName"),
                          QString::fromStdString(transaction.getCategoryName()));
             value.insert(QStringLiteral("editable"),
-                         canWrite && (isOwner || transaction.getUserId() == m_session.userId()));
+                         canWrite && (isManager || transaction.getUserId() == m_session.userId()));
             values.append(value);
         }
         m_transactions = std::move(values);

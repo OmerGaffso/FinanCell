@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <stdexcept>
 #include "CellService.h"
 #include "utils/StringUtils.h"
@@ -7,14 +8,14 @@ CellService::CellService(CellRepository& cellRepository, UserRepository& userRep
 {
 }
 
-bool CellService::createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription)
+bool CellService::createCell(const std::string& cellName, uint64_t creatorId, const std::string& cellDescription)
 {
     const std::string trimmedCellName = StringUtils::trim(cellName);
     const std::string trimmedCellDescription = StringUtils::trim(cellDescription);
 
-    if (ownerId == 0)
+    if (creatorId == 0)
     {
-        throw std::invalid_argument("A cell must have a valid owner.");
+        throw std::invalid_argument("A cell must have a valid creator.");
     }
 
     if (!isCellNameValid(trimmedCellName))
@@ -37,7 +38,7 @@ bool CellService::createCell(const std::string& cellName, uint64_t ownerId, cons
             trimmedCellName,
             trimmedCellDescription,
             "ILS",
-            ownerId))
+            creatorId))
         .has_value();
 }
 
@@ -45,8 +46,11 @@ CellOperationResult CellService::addMemberToCell(uint64_t actingUserId, uint64_t
 {
     const auto cell = m_cellRepository.findCellById(cellId);
     if (!cell) return CellOperationResult::CELL_NOT_FOUND;
-    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
-    if (role == CellRole::OWNER) return CellOperationResult::INVALID_ROLE;
+    const auto actor = m_cellRepository.findMember(cellId, actingUserId);
+    if (!actor || actor->role == CellRole::GUEST)
+        return CellOperationResult::NOT_AUTHORIZED;
+    if (actor->role == CellRole::MEMBER && role == CellRole::MANAGER)
+        return CellOperationResult::NOT_AUTHORIZED;
     if (!m_userRepository.findUserById(newUserId)) return CellOperationResult::USER_NOT_FOUND;
     if (m_cellRepository.findMember(cellId, newUserId)) return CellOperationResult::ALREADY_MEMBER;
     return m_cellRepository.insertMember({newUserId, cellId, role})
@@ -61,10 +65,12 @@ CellOperationResult CellService::updateMemberRole(
 {
     const auto cell = m_cellRepository.findCellById(cellId);
     if (!cell) return CellOperationResult::CELL_NOT_FOUND;
-    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
-    if (memberUserId == cell->getOwnerId()) return CellOperationResult::CANNOT_MODIFY_OWNER;
-    if (role == CellRole::OWNER) return CellOperationResult::INVALID_ROLE;
-    if (!m_cellRepository.findMember(cellId, memberUserId)) return CellOperationResult::MEMBER_NOT_FOUND;
+    if (!isManager(actingUserId, cellId)) return CellOperationResult::NOT_AUTHORIZED;
+    const auto member = m_cellRepository.findMember(cellId, memberUserId);
+    if (!member) return CellOperationResult::MEMBER_NOT_FOUND;
+    if (member->role == CellRole::MANAGER && role != CellRole::MANAGER &&
+        managerCount(cellId) <= 1)
+        return CellOperationResult::LAST_MANAGER_REQUIRED;
     return m_cellRepository.updateMemberRole(cellId, memberUserId, role)
         ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
@@ -76,9 +82,11 @@ CellOperationResult CellService::removeMemberFromCell(
 {
     const auto cell = m_cellRepository.findCellById(cellId);
     if (!cell) return CellOperationResult::CELL_NOT_FOUND;
-    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
-    if (memberUserId == cell->getOwnerId()) return CellOperationResult::CANNOT_MODIFY_OWNER;
-    if (!m_cellRepository.findMember(cellId, memberUserId)) return CellOperationResult::MEMBER_NOT_FOUND;
+    if (!isManager(actingUserId, cellId)) return CellOperationResult::NOT_AUTHORIZED;
+    const auto member = m_cellRepository.findMember(cellId, memberUserId);
+    if (!member) return CellOperationResult::MEMBER_NOT_FOUND;
+    if (member->role == CellRole::MANAGER && managerCount(cellId) <= 1)
+        return CellOperationResult::LAST_MANAGER_REQUIRED;
     return m_cellRepository.deleteMember(cellId, memberUserId)
         ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
@@ -93,7 +101,7 @@ CellOperationResult CellService::updateCell(
     const std::string trimmedName = StringUtils::trim(name);
     const std::string trimmedDescription = StringUtils::trim(description);
     if (!cell) return CellOperationResult::CELL_NOT_FOUND;
-    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    if (!isManager(actingUserId, cellId)) return CellOperationResult::NOT_AUTHORIZED;
     if (!isCellNameValid(trimmedName) || !isDescriptionValid(trimmedDescription))
         return CellOperationResult::INVALID_INPUT;
     return m_cellRepository.updateCell(FinancialCell(
@@ -101,14 +109,14 @@ CellOperationResult CellService::updateCell(
         trimmedName,
         trimmedDescription,
         cell->getCurrency(),
-        cell->getOwnerId())) ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
+        cell->getCreatorId())) ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
 
 CellOperationResult CellService::deleteCell(uint64_t actingUserId, uint64_t cellId)
 {
     const auto cell = m_cellRepository.findCellById(cellId);
     if (!cell) return CellOperationResult::CELL_NOT_FOUND;
-    if (!isOwner(actingUserId, *cell)) return CellOperationResult::NOT_AUTHORIZED;
+    if (!isManager(actingUserId, cellId)) return CellOperationResult::NOT_AUTHORIZED;
     return m_cellRepository.deleteCell(cellId)
         ? CellOperationResult::SUCCESS : CellOperationResult::STORAGE_ERROR;
 }
@@ -171,9 +179,19 @@ std::optional<std::vector<CellMemberSummary>> CellService::getCellMemberSummarie
     return summaries;
 }
 
-bool CellService::isOwner(uint64_t userId, const FinancialCell& cell) const
+bool CellService::isManager(uint64_t userId, uint64_t cellId) const
 {
-    return userId != 0 && cell.getOwnerId() == userId;
+    const auto membership = m_cellRepository.findMember(cellId, userId);
+    return membership && membership->role == CellRole::MANAGER;
+}
+
+std::size_t CellService::managerCount(uint64_t cellId) const
+{
+    const auto members = m_cellRepository.findMembersByCellId(cellId);
+    return static_cast<std::size_t>(std::count_if(
+        members.begin(),
+        members.end(),
+        [](const CellMember& member) { return member.role == CellRole::MANAGER; }));
 }
 
 bool CellService::isMember(uint64_t userId, uint64_t cellId) const

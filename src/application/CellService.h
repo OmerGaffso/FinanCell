@@ -19,7 +19,7 @@ enum class CellOperationResult
     INVALID_ROLE,
     INVALID_INPUT,
     NOT_AUTHORIZED,
-    CANNOT_MODIFY_OWNER,
+    LAST_MANAGER_REQUIRED,
     STORAGE_ERROR
 };
 
@@ -38,8 +38,8 @@ public:
     /** @brief Creates the service. @param cellRepository Cell persistence. @param userRepository User persistence. */
     CellService(CellRepository& cellRepository, UserRepository& userRepository);
 
-    /** @brief Creates a cell. @param cellName Cell name. @param ownerId Owner ID. @param cellDescription Description. @return True on success. */
-    bool createCell(const std::string& cellName, uint64_t ownerId, const std::string& cellDescription);
+    /** @brief Creates a cell. @param cellName Cell name. @param creatorId Creator ID. @param cellDescription Description. @return True on success. */
+    bool createCell(const std::string& cellName, uint64_t creatorId, const std::string& cellDescription);
     /** @brief Adds a member. @param actingUserId Actor ID. @param cellId Cell ID. @param newUserId New member ID. @param role New member role. @return Operation result. */
     CellOperationResult addMemberToCell(uint64_t actingUserId, uint64_t cellId, uint64_t newUserId, CellRole role);
     /** @brief Changes a member role. @param actingUserId Actor ID. @param cellId Cell ID. @param memberUserId Member ID. @param role New role. @return Operation result. */
@@ -65,6 +65,8 @@ public:
     std::optional<std::vector<CellMemberSummary>> getCellMemberSummaries(
         std::uint64_t actingUserId,
         std::uint64_t cellId) const;
+    /** @brief Checks whether a user manages a cell. @param userId User ID. @param cellId Cell ID. @return True for a manager. */
+    bool isManager(std::uint64_t userId, std::uint64_t cellId) const;
 
     /** @brief Validates a cell name. @param cellName Cell name. @return True when valid. */
     bool isCellNameValid(const std::string& cellName) const;
@@ -72,8 +74,8 @@ public:
     bool isDescriptionValid(const std::string& description) const;
 
 private:
-    /** @brief Checks cell ownership. @param userId User ID. @param cell Cell. @return True for the owner. */
-    bool isOwner(uint64_t userId, const FinancialCell& cell) const;
+    /** @brief Counts managers assigned to a cell. @param cellId Cell ID. @return Manager count. */
+    std::size_t managerCount(std::uint64_t cellId) const;
     /** @brief Checks cell membership. @param userId User ID. @param cellId Cell ID. @return True for a member. */
     bool isMember(uint64_t userId, uint64_t cellId) const;
     CellRepository& m_cellRepository;

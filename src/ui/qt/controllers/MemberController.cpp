@@ -15,7 +15,7 @@ namespace
 {
 QString roleText(CellRole role)
 {
-    if (role == CellRole::OWNER) return QStringLiteral("OWNER");
+    if (role == CellRole::MANAGER) return QStringLiteral("MANAGER");
     if (role == CellRole::MEMBER) return QStringLiteral("MEMBER");
     return QStringLiteral("GUEST");
 }
@@ -23,6 +23,7 @@ QString roleText(CellRole role)
 std::optional<CellRole> parseManagedRole(const QString& role)
 {
     const QString normalized = role.trimmed().toUpper();
+    if (normalized == QStringLiteral("MANAGER")) return CellRole::MANAGER;
     if (normalized == QStringLiteral("MEMBER")) return CellRole::MEMBER;
     if (normalized == QStringLiteral("GUEST")) return CellRole::GUEST;
     return std::nullopt;
@@ -42,11 +43,11 @@ QString resultMessage(CellOperationResult result)
         case CellOperationResult::MEMBER_NOT_FOUND:
             return QStringLiteral("That user is no longer a member of this cell.");
         case CellOperationResult::INVALID_ROLE:
-            return QStringLiteral("Choose either Member or Guest.");
+            return QStringLiteral("Choose Manager, Member, or Guest.");
         case CellOperationResult::NOT_AUTHORIZED:
-            return QStringLiteral("Only the cell owner can manage members.");
-        case CellOperationResult::CANNOT_MODIFY_OWNER:
-            return QStringLiteral("The cell owner cannot be changed or removed.");
+            return QStringLiteral("Your role does not allow that membership change.");
+        case CellOperationResult::LAST_MANAGER_REQUIRED:
+            return QStringLiteral("A financial cell must keep at least one manager.");
         case CellOperationResult::INVALID_INPUT:
             return QStringLiteral("The membership request is invalid.");
         case CellOperationResult::STORAGE_ERROR:
@@ -71,6 +72,7 @@ MemberController::MemberController(
 
 QVariantList MemberController::members() const { return m_members; }
 bool MemberController::canManage() const { return m_canManage; }
+bool MemberController::canAddMembers() const { return m_canAddMembers; }
 QString MemberController::errorMessage() const { return m_errorMessage; }
 
 bool MemberController::loadMembers(qulonglong cellId)
@@ -96,6 +98,7 @@ bool MemberController::loadMembers(qulonglong cellId)
 
         QVariantList members;
         bool canManage = false;
+        bool canAddMembers = false;
         for (const auto& summary : *summaries)
         {
             QVariantMap member;
@@ -106,15 +109,18 @@ bool MemberController::loadMembers(qulonglong cellId)
             member.insert(QStringLiteral("displayName"),
                           QString::fromStdString(summary.getDisplayName()));
             member.insert(QStringLiteral("role"), roleText(summary.getRole()));
-            member.insert(QStringLiteral("isOwner"),
-                          summary.getRole() == CellRole::OWNER);
-            if (summary.getUserId() == m_session.userId() &&
-                summary.getRole() == CellRole::OWNER)
-                canManage = true;
+            member.insert(QStringLiteral("isManager"),
+                          summary.getRole() == CellRole::MANAGER);
+            if (summary.getUserId() == m_session.userId())
+            {
+                canManage = summary.getRole() == CellRole::MANAGER;
+                canAddMembers = summary.getRole() != CellRole::GUEST;
+            }
             members.append(member);
         }
         m_members = std::move(members);
         m_canManage = canManage;
+        m_canAddMembers = canAddMembers;
         emit membersChanged();
         return true;
     }
@@ -136,7 +142,7 @@ bool MemberController::addMember(
     const auto parsedRole = parseManagedRole(role);
     if (!parsedRole)
     {
-        setErrorMessage(QStringLiteral("Choose either Member or Guest."));
+        setErrorMessage(QStringLiteral("Choose Manager, Member, or Guest."));
         return false;
     }
     try
@@ -160,7 +166,7 @@ bool MemberController::updateMemberRole(
     const auto parsedRole = parseManagedRole(role);
     if (!parsedRole)
     {
-        setErrorMessage(QStringLiteral("Choose either Member or Guest."));
+        setErrorMessage(QStringLiteral("Choose Manager, Member, or Guest."));
         return false;
     }
     try
@@ -207,9 +213,10 @@ bool MemberController::finishMutation(int resultValue, qulonglong cellId)
 
 void MemberController::clearMembers()
 {
-    if (m_members.isEmpty() && !m_canManage) return;
+    if (m_members.isEmpty() && !m_canManage && !m_canAddMembers) return;
     m_members.clear();
     m_canManage = false;
+    m_canAddMembers = false;
     emit membersChanged();
 }
 

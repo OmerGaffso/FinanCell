@@ -147,8 +147,22 @@ int main()
                 memberController.members().size() == 2,
             "owner adds a selected registered user");
     require(memberController.updateMemberRole(
+                cellId, other->getUserId(), "MANAGER") &&
+                cellRepository.findMember(cellId, other->getUserId())->role ==
+                    CellRole::MANAGER,
+            "manager promotes another member to manager");
+    session.setUser(
+        other->getUserId(), QStringLiteral("other"), QStringLiteral("Other User"));
+    require(memberController.loadMembers(cellId) && memberController.canManage() &&
+                memberController.canAddMembers() && controller.loadCells() &&
+                controller.selectCell(cellId) && controller.canManageSelectedCell(),
+            "promoted manager receives cell and membership management access");
+    session.setUser(
+        owner->getUserId(), QStringLiteral("owner"), QStringLiteral("Cell Owner"));
+    require(memberController.loadMembers(cellId), "creator manager reloads members");
+    require(memberController.updateMemberRole(
                 cellId, other->getUserId(), "GUEST"),
-            "owner changes a member role");
+            "manager changes another manager role while one remains");
     require(memberController.removeMember(cellId, other->getUserId()) &&
                 memberController.members().size() == 1,
             "owner removes a cell member");

@@ -109,6 +109,8 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
                 "register member through GUI controller");
         require(user.registerUser("guest", "Cell Guest", "secret3"),
                 "register guest through GUI controller");
+        require(user.registerUser("newcomer", "New Cell User", "secret4"),
+                "register a user for member-managed access");
         require(!user.registerUser("OWNER", "Duplicate Owner", "secret4"),
                 "reject duplicate normalized username");
         require(!user.login("owner", "wrong-password"), "reject invalid login");
@@ -198,8 +200,14 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
         require(user.login("member", "secret2") && cell.loadCells() &&
                     cell.selectCell(cellId),
                 "member logs in and opens shared cell");
-        require(member.loadMembers(cellId) && !member.canManage(),
-                "member cannot manage membership");
+        const auto newcomerId = users.findUserByUsername("newcomer")->getUserId();
+        require(member.loadMembers(cellId) && !member.canManage() &&
+                    member.canAddMembers(),
+                "member can add users without managing existing roles");
+        require(member.addMember(cellId, newcomerId, "GUEST"),
+                "member adds a registered user as guest");
+        require(!member.updateMemberRole(cellId, newcomerId, "MANAGER"),
+                "member cannot promote a user to manager");
         require(category.loadCategories(cellId) && category.canCreate(),
                 "member can create categories");
         require(transaction.loadTransactions(cellId) && transaction.canWrite(),
@@ -211,8 +219,9 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
         require(user.login("guest", "secret3") && cell.loadCells() &&
                     cell.selectCell(cellId),
                 "guest logs in and opens shared cell");
-        require(member.loadMembers(cellId) && !member.canManage(),
-                "guest cannot manage membership");
+        require(member.loadMembers(cellId) && !member.canManage() &&
+                    !member.canAddMembers(),
+                "guest cannot change membership");
         require(category.loadCategories(cellId) && !category.canCreate(),
                 "guest cannot create categories");
         require(transaction.loadTransactions(cellId) && !transaction.canWrite(),
@@ -250,7 +259,7 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
         require(cell.selectedCell().value("name").toString() ==
                     QStringLiteral("Household 2026"),
                 "cell edits persist after restart");
-        require(member.loadMembers(cellId) && member.members().size() == 3,
+        require(member.loadMembers(cellId) && member.members().size() == 4,
                 "members persist after restart");
         require(category.loadCategories(cellId) && category.categories().size() == 3,
                 "categories persist after restart");

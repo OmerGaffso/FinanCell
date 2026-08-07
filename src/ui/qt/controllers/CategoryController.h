@@ -29,7 +29,7 @@ public:
 
     /** @brief Returns loaded categories. @return Category maps for QML. */
     QVariantList categories() const;
-    /** @brief Returns whether category creation is available. @return True for Owner or Member. */
+    /** @brief Returns whether category creation is available. @return True for Manager or Member. */
     bool canCreate() const;
     /** @brief Returns the latest failure. @return Error text, or empty. */
     QString errorMessage() const;

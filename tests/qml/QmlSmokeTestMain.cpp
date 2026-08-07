@@ -87,6 +87,7 @@ class MockController final : public QObject
     Q_PROPERTY(bool canManageSelectedCell READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(QVariantList members READ members NOTIFY stateChanged)
     Q_PROPERTY(bool canManage READ trueValue NOTIFY stateChanged)
+    Q_PROPERTY(bool canAddMembers READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(QVariantList categories READ categories NOTIFY stateChanged)
     Q_PROPERTY(bool canCreate READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(QVariantList transactions READ transactions NOTIFY stateChanged)
@@ -130,13 +131,13 @@ public:
         owner.insert(QStringLiteral("userId"), 1);
         owner.insert(QStringLiteral("username"), QStringLiteral("tester"));
         owner.insert(QStringLiteral("displayName"), QStringLiteral("Test User"));
-        owner.insert(QStringLiteral("role"), QStringLiteral("OWNER"));
-        owner.insert(QStringLiteral("isOwner"), true);
+        owner.insert(QStringLiteral("role"), QStringLiteral("MANAGER"));
+        owner.insert(QStringLiteral("isManager"), true);
         m_members.append(owner);
 
         QVariantMap member = user;
         member.insert(QStringLiteral("role"), QStringLiteral("MEMBER"));
-        member.insert(QStringLiteral("isOwner"), false);
+        member.insert(QStringLiteral("isManager"), false);
         m_members.append(member);
 
         QVariantMap category;

@@ -57,7 +57,7 @@ bool TransactionService::editTransaction(
 
     const auto membership = m_cellRepository.findMember(transaction->getCellId(), actingUserId);
     if (!membership || membership->role == CellRole::GUEST ||
-        (membership->role != CellRole::OWNER && transaction->getUserId() != actingUserId))
+        (membership->role != CellRole::MANAGER && transaction->getUserId() != actingUserId))
     {
         return false;
     }
@@ -82,7 +82,7 @@ bool TransactionService::deleteTransaction(
     if (!transaction || transaction->getCellId() != cellId) return false;
     const auto membership = m_cellRepository.findMember(transaction->getCellId(), actingUserId);
     if (!membership || membership->role == CellRole::GUEST ||
-        (membership->role != CellRole::OWNER && transaction->getUserId() != actingUserId))
+        (membership->role != CellRole::MANAGER && transaction->getUserId() != actingUserId))
     {
         return false;
     }

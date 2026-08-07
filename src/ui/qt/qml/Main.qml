@@ -5,6 +5,8 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: window
 
+    property string pendingMemberRole: "MEMBER"
+
     width: 1200
     height: 800
     minimumWidth: 700
@@ -202,7 +204,10 @@ ApplicationWindow {
             controller: memberController
             cellState: cellController
             onBackRequested: stackView.pop()
-            onAddRequested: stackView.push(memberLookupPageComponent)
+            onAddRequested: function(role) {
+                window.pendingMemberRole = role
+                stackView.push(memberLookupPageComponent)
+            }
         }
     }
 
@@ -215,11 +220,11 @@ ApplicationWindow {
             selectionMode: true
             onBackRequested: stackView.pop()
             onUserSelected: function(user) {
-                memberController.addMember(
-                    cellController.selectedCell.cellId,
-                    user.userId,
-                    "MEMBER")
-                stackView.pop()
+                if (memberController.addMember(
+                        cellController.selectedCell.cellId,
+                        user.userId,
+                        window.pendingMemberRole))
+                    stackView.pop()
             }
         }
     }

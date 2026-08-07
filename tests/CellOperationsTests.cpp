@@ -93,8 +93,8 @@ int main()
     const auto ownedCells = cellService.getCellsForUser(owner->getUserId());
     require(ownedCells.size() == 1, "owner can see new cell");
     const uint64_t cellId = ownedCells.front().getCellId();
-    require(cells.findMember(cellId, owner->getUserId())->role == CellRole::OWNER,
-            "owner membership created");
+    require(cells.findMember(cellId, owner->getUserId())->role == CellRole::MANAGER,
+            "creator manager membership created");
     require(categories.findCategoryByName(cellId, "General").has_value(),
             "default category created with cell");
 
@@ -102,11 +102,8 @@ int main()
                 owner->getUserId(), cellId, member->getUserId(), CellRole::MEMBER) == CellOperationResult::SUCCESS,
             "owner adds member");
     require(cellService.addMemberToCell(
-                owner->getUserId(), cellId, guest->getUserId(), CellRole::GUEST) == CellOperationResult::SUCCESS,
-            "owner adds guest");
-    require(cellService.addMemberToCell(
-                member->getUserId(), cellId, guest->getUserId(), CellRole::MEMBER) == CellOperationResult::NOT_AUTHORIZED,
-            "member cannot manage membership");
+                member->getUserId(), cellId, guest->getUserId(), CellRole::GUEST) == CellOperationResult::SUCCESS,
+            "member adds guest");
     require(cellService.addMemberToCell(
                 owner->getUserId(), cellId, member->getUserId(), CellRole::MEMBER) == CellOperationResult::ALREADY_MEMBER,
             "duplicate membership rejected");
@@ -114,20 +111,27 @@ int main()
                 owner->getUserId(), cellId, 9999, CellRole::MEMBER) == CellOperationResult::USER_NOT_FOUND,
             "unknown member rejected");
     require(cellService.addMemberToCell(
-                owner->getUserId(), cellId, users.findUserByUsername("secure")->getUserId(), CellRole::OWNER) == CellOperationResult::INVALID_ROLE,
-            "second owner role rejected");
+                member->getUserId(), cellId, users.findUserByUsername("secure")->getUserId(), CellRole::MANAGER) == CellOperationResult::NOT_AUTHORIZED,
+            "member cannot add a manager");
+    require(cellService.addMemberToCell(
+                owner->getUserId(), cellId, users.findUserByUsername("secure")->getUserId(), CellRole::MANAGER) == CellOperationResult::SUCCESS,
+            "manager adds another manager");
     require(cellService.getCellsForUser(member->getUserId()).size() == 1,
             "member can see joined cell");
     const auto memberSummaries = cellService.getCellMemberSummaries(
         owner->getUserId(), cellId);
-    require(memberSummaries && memberSummaries->size() == 3,
+    require(memberSummaries && memberSummaries->size() == 4,
             "cell members load as public identity summaries");
     require(memberSummaries->front().getUsername() == "owner" &&
-                memberSummaries->front().getRole() == CellRole::OWNER,
+                memberSummaries->front().getRole() == CellRole::MANAGER,
             "member summary includes username and role without account secrets");
-    require(!cellService.getCellMemberSummaries(
-                users.findUserByUsername("secure")->getUserId(), cellId),
+    require(!cellService.getCellMemberSummaries(9999, cellId),
             "non-members cannot load member summaries");
+    require(cellService.updateMemberRole(
+                owner->getUserId(), cellId,
+                users.findUserByUsername("secure")->getUserId(), CellRole::MEMBER) ==
+                CellOperationResult::SUCCESS,
+            "manager demotes another manager while one remains");
     require(cellService.updateMemberRole(
                 owner->getUserId(), cellId, guest->getUserId(), CellRole::MEMBER) == CellOperationResult::SUCCESS,
             "owner changes member role");
@@ -217,7 +221,7 @@ int main()
                 owner->getUserId(), cellId, "2026-08-01", "2026-07-01"),
             "reversed date range rejected");
     require(!transactionService.getTransactionsForCell(
-                users.findUserByUsername("secure")->getUserId(), cellId),
+                9999, cellId),
             "outsider cannot read transactions");
     require(!transactionService.addTransaction(
                 guest->getUserId(), cellId, TransactionType::EXPENSE, "Denied", 100,
@@ -290,7 +294,7 @@ int main()
             "monthly report identifies category overspending");
     require(!reportService.generate(owner->getUserId(), cellId, "2026-13") &&
                 !reportService.generate(
-                    users.findUserByUsername("secure")->getUserId(), cellId, "2026-07"),
+                    9999, cellId, "2026-07"),
             "invalid and unauthorized reports are rejected");
 
     require(cellService.createCell("Travel Budget", owner->getUserId(), "Trips"),
@@ -358,8 +362,8 @@ int main()
                 owner->getUserId(), cellId, "Updated Budget", "Updated description") == CellOperationResult::SUCCESS,
             "owner edits cell");
     require(cellService.removeMemberFromCell(
-                owner->getUserId(), cellId, owner->getUserId()) == CellOperationResult::CANNOT_MODIFY_OWNER,
-            "owner cannot be removed");
+                owner->getUserId(), cellId, owner->getUserId()) == CellOperationResult::LAST_MANAGER_REQUIRED,
+            "last manager cannot be removed");
     require(cellService.removeMemberFromCell(
                 owner->getUserId(), cellId, guest->getUserId()) == CellOperationResult::SUCCESS,
             "owner removes guest");

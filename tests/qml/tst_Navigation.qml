@@ -83,7 +83,7 @@ TestCase {
 
         stack.currentItem.membersRequested()
         expectPage("memberPage")
-        stack.currentItem.addRequested()
+        stack.currentItem.addRequested("MEMBER")
         expectPage("memberLookupPage")
         stack.currentItem.backRequested()
         expectPage("memberPage")
@@ -97,7 +97,7 @@ TestCase {
 
         stack.currentItem.transactionsRequested()
         expectPage("transactionPage")
-        stack.currentItem.addRequested()
+        stack.currentItem.addRequested("MEMBER")
         expectPage("transactionFormPage")
         const addPicker = findChild(stack.currentItem, "categoryPickerDialog")
         verify(addPicker !== null)
@@ -189,7 +189,7 @@ TestCase {
 
         stack.currentItem.membersRequested()
         expectPage("memberPage")
-        stack.currentItem.addRequested()
+        stack.currentItem.addRequested("MEMBER")
         expectPage("memberLookupPage")
         stack.currentItem.backRequested()
         expectPage("memberPage")

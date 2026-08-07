@@ -20,9 +20,9 @@ public:
     bool updateCell(const FinancialCell& cell) override;
     /** @copydoc CellRepository::deleteCell */
     bool deleteCell(std::uint64_t cellId) override;
-    /** @copydoc CellRepository::findCellsByOwnerId */
-    std::vector<FinancialCell> findCellsByOwnerId(
-        std::uint64_t ownerId) const override;
+    /** @copydoc CellRepository::findCellsByCreatorId */
+    std::vector<FinancialCell> findCellsByCreatorId(
+        std::uint64_t creatorId) const override;
     /** @copydoc CellRepository::findAllCells */
     std::vector<FinancialCell> findAllCells() const override;
     /** @copydoc CellRepository::insertMember */

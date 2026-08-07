@@ -11,7 +11,7 @@ Page {
     required property var controller
     required property var cellState
     signal backRequested()
-    signal addRequested()
+    signal addRequested(string role)
 
     readonly property var selectedCell: cellState.selectedCell
 
@@ -50,13 +50,25 @@ Page {
             color: brand.mutedText
         }
 
-        Button {
+        GridLayout {
             Layout.fillWidth: true
-            visible: controller.canManage
-            text: qsTr("Add a registered user")
-            palette.button: brand.green
-            palette.buttonText: brand.navyDeep
-            onClicked: page.addRequested()
+            visible: controller.canAddMembers
+            columns: page.width < 480 ? 1 : 2
+            columnSpacing: 10
+            rowSpacing: 10
+
+            Button {
+                Layout.fillWidth: true
+                text: qsTr("Add as member")
+                palette.button: brand.green
+                palette.buttonText: brand.navyDeep
+                onClicked: page.addRequested("MEMBER")
+            }
+            Button {
+                Layout.fillWidth: true
+                text: qsTr("Add as guest")
+                onClicked: page.addRequested("GUEST")
+            }
         }
 
         Label {
@@ -100,22 +112,24 @@ Page {
                     Label {
                         Layout.fillWidth: true
                         text: qsTr("@%1 · %2").arg(modelData.username).arg(modelData.role)
-                        color: modelData.isOwner ? brand.greenDark : brand.mutedText
+                        color: modelData.isManager ? brand.greenDark : brand.mutedText
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: controller.canManage && !modelData.isOwner
+                        visible: controller.canManage
                         spacing: 8
 
                         ComboBox {
                             id: roleBox
                             Layout.fillWidth: page.width < 480
-                            model: [qsTr("Member"), qsTr("Guest")]
-                            currentIndex: modelData.role === "GUEST" ? 1 : 0
+                            model: [qsTr("Manager"), qsTr("Member"), qsTr("Guest")]
+                            currentIndex: modelData.role === "MANAGER" ? 0
+                                          : modelData.role === "MEMBER" ? 1 : 2
                             onActivated: controller.updateMemberRole(
                                 page.selectedCell.cellId,
                                 modelData.userId,
-                                currentIndex === 0 ? "MEMBER" : "GUEST")
+                                currentIndex === 0 ? "MANAGER"
+                                : currentIndex === 1 ? "MEMBER" : "GUEST")
                         }
                         Button {
                             text: qsTr("Remove")

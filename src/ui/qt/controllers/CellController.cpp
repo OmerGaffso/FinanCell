@@ -39,8 +39,8 @@ QVariantMap toVariantMap(
         QStringLiteral("cellId"),
         QVariant::fromValue<qulonglong>(domainCell.getCellId()));
     cell.insert(
-        QStringLiteral("ownerId"),
-        QVariant::fromValue<qulonglong>(domainCell.getOwnerId()));
+        QStringLiteral("creatorId"),
+        QVariant::fromValue<qulonglong>(domainCell.getCreatorId()));
     cell.insert(
         QStringLiteral("name"),
         QString::fromStdString(domainCell.getCellName()));
@@ -104,9 +104,9 @@ bool CellController::hasSelectedCell() const
 
 bool CellController::canManageSelectedCell() const
 {
-    return hasSelectedCell() &&
-           m_selectedCell.value(QStringLiteral("ownerId")).toULongLong() ==
-               m_session.userId();
+    return hasSelectedCell() && m_cellService.isManager(
+        m_session.userId(),
+        m_selectedCell.value(QStringLiteral("cellId")).toULongLong());
 }
 
 bool CellController::loadCells()
@@ -262,7 +262,7 @@ bool CellController::updateSelectedCell(
     clearError();
     if (!canManageSelectedCell())
     {
-        setErrorMessage(QStringLiteral("Only the cell owner can edit its details."));
+        setErrorMessage(QStringLiteral("Only a cell manager can edit its details."));
         return false;
     }
     try
@@ -276,7 +276,7 @@ bool CellController::updateSelectedCell(
             setErrorMessage(result == CellOperationResult::INVALID_INPUT
                 ? QStringLiteral("Cell names must be 3–50 characters and descriptions at most 200.")
                 : result == CellOperationResult::NOT_AUTHORIZED
-                  ? QStringLiteral("Only the cell owner can edit its details.")
+                ? QStringLiteral("Only a cell manager can edit its details.")
                   : QStringLiteral("The cell changes could not be saved."));
             return false;
         }
@@ -296,7 +296,7 @@ bool CellController::deleteSelectedCell()
     clearError();
     if (!canManageSelectedCell())
     {
-        setErrorMessage(QStringLiteral("Only the cell owner can delete this cell."));
+        setErrorMessage(QStringLiteral("Only a cell manager can delete this cell."));
         return false;
     }
     try
@@ -307,7 +307,7 @@ bool CellController::deleteSelectedCell()
         if (result != CellOperationResult::SUCCESS)
         {
             setErrorMessage(result == CellOperationResult::NOT_AUTHORIZED
-                ? QStringLiteral("Only the cell owner can delete this cell.")
+                ? QStringLiteral("Only a cell manager can delete this cell.")
                 : QStringLiteral("The financial cell could not be deleted."));
             return false;
         }

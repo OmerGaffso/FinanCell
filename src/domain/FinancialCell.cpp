@@ -2,9 +2,9 @@
 
 #include <utility>
 
-FinancialCell::FinancialCell(uint64_t id, std::string name, std::string description, std::string currency, uint64_t ownerId)
+FinancialCell::FinancialCell(uint64_t id, std::string name, std::string description, std::string currency, uint64_t creatorId)
     : m_cellId(id),
-      m_ownerId(ownerId),
+      m_creatorId(creatorId),
       m_cellName(std::move(name)),
       m_cellDescription(std::move(description)),
       m_currency(std::move(currency))
@@ -16,9 +16,9 @@ uint64_t FinancialCell::getCellId() const
     return m_cellId;
 }
 
-uint64_t FinancialCell::getOwnerId() const
+uint64_t FinancialCell::getCreatorId() const
 {
-    return m_ownerId;
+    return m_creatorId;
 }
 
 const std::string& FinancialCell::getCellName() const

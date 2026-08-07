@@ -32,7 +32,7 @@ const char* cellResultMessage(CellOperationResult result)
         case CellOperationResult::INVALID_ROLE: return "The requested role is invalid.";
         case CellOperationResult::INVALID_INPUT: return "The supplied cell data is invalid.";
         case CellOperationResult::NOT_AUTHORIZED: return "You are not authorized for this operation.";
-        case CellOperationResult::CANNOT_MODIFY_OWNER: return "The cell owner cannot be modified.";
+        case CellOperationResult::LAST_MANAGER_REQUIRED: return "The cell must keep at least one manager.";
         case CellOperationResult::STORAGE_ERROR: return "The database operation failed.";
     }
     return "Unknown operation result.";
@@ -108,9 +108,9 @@ void ConsoleUI::runApp()
             {
                 const auto role = currentCellRole();
                 const bool canWrite = role && *role != CellRole::GUEST;
-                const bool isOwner = role && *role == CellRole::OWNER;
+                const bool isManager = role && *role == CellRole::MANAGER;
                 if (((choice >= 2 && choice <= 4) && !canWrite) ||
-                    ((choice == 8 || choice == 9) && !isOwner))
+                    ((choice == 8 || choice == 9) && !isManager))
                 {
                     std::cout << "That action is not available for your role.\n\n";
                     continue;
@@ -273,7 +273,7 @@ void ConsoleUI::printCells() const
                       << ", Name: " << cell.getCellName()
                       << ", Description: " << cell.getCellDescription()
                       << ", Currency: " << cell.getCurrency()
-                      << ", Owner ID: " << cell.getOwnerId()
+                      << ", Creator ID: " << cell.getCreatorId()
                       << '\n';
         }
     }
@@ -295,7 +295,7 @@ void ConsoleUI::printCellMembers()
     std::cout << "\nCell members:\n";
     for (const CellMember& member : members)
     {
-        const char* role = member.role == CellRole::OWNER ? "OWNER" :
+        const char* role = member.role == CellRole::MANAGER ? "MANAGER" :
                            member.role == CellRole::MEMBER ? "MEMBER" : "GUEST";
         const auto user = m_userService.findUserById(member.userId);
         std::cout << "User: " << (user ? user->getUsername() : "unknown")
@@ -658,7 +658,7 @@ void ConsoleUI::displayCellActionMenu() const
     }
     std::cout << "5. Monthly Report\n6. View/Manage Members\n"
               << "7. View/Manage Categories\n";
-    if (role && *role == CellRole::OWNER)
+    if (role && *role == CellRole::MANAGER)
     {
         std::cout << "8. Edit Cell\n9. Delete Cell\n";
     }
@@ -681,11 +681,15 @@ void ConsoleUI::manageMembers()
 {
     const auto role = currentCellRole();
     std::cout << "1. View Members\n";
-    if (role && *role == CellRole::OWNER)
+    if (role && *role == CellRole::MANAGER)
         std::cout << "2. Add Member\n3. Change Role\n4. Remove Member\n";
+    else if (role && *role == CellRole::MEMBER)
+        std::cout << "2. Add Member\n";
     int choice;
     if (!readChoice(choice)) return;
-    if (choice >= 2 && choice <= 4 && (!role || *role != CellRole::OWNER))
+    const bool managerAction = choice == 3 || choice == 4;
+    if (!role || *role == CellRole::GUEST ||
+        (managerAction && *role != CellRole::MANAGER))
     {
         std::cout << "That action is not available for your role.\n\n";
         return;
@@ -804,6 +808,21 @@ bool ConsoleUI::readOptionalId(const std::string& prompt, std::uint64_t& value) 
 bool ConsoleUI::readRole(CellRole& role) const
 {
     std::uint64_t choice;
+    const auto actorRole = currentCellRole();
+    if (actorRole && *actorRole == CellRole::MANAGER)
+    {
+        if (!readId("Role (1 = MANAGER, 2 = MEMBER, 3 = GUEST): ", choice)) return false;
+        if (choice == 1) role = CellRole::MANAGER;
+        else if (choice == 2) role = CellRole::MEMBER;
+        else if (choice == 3) role = CellRole::GUEST;
+        else
+        {
+            std::cout << "Invalid role.\n" << std::endl;
+            return false;
+        }
+        return true;
+    }
+
     if (!readId("Role (1 = MEMBER, 2 = GUEST): ", choice)) return false;
     if (choice == 1) role = CellRole::MEMBER;
     else if (choice == 2) role = CellRole::GUEST;

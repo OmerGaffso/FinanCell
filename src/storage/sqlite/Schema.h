@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS cell_members (
     cell_id       INTEGER NOT NULL,
     user_id       INTEGER NOT NULL,
     role          TEXT NOT NULL
-                  CHECK(role IN ('OWNER', 'MEMBER', 'GUEST')),
+                  CHECK(role IN ('MANAGER', 'MEMBER', 'GUEST')),
     joined_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (cell_id, user_id),
     FOREIGN KEY (cell_id) REFERENCES cells(id) ON DELETE CASCADE,
@@ -47,20 +47,53 @@ CREATE INDEX IF NOT EXISTS idx_cell_members_user_id
 ON cell_members(user_id);
 )sql";
 
-inline constexpr char CREATE_CELL_OWNER_MEMBERSHIP_TRIGGER[] = R"sql(
-CREATE TRIGGER IF NOT EXISTS add_cell_owner_membership
+inline constexpr char CREATE_CELL_MANAGER_MEMBERSHIP_TRIGGER[] = R"sql(
+CREATE TRIGGER IF NOT EXISTS add_cell_manager_membership
 AFTER INSERT ON cells
 BEGIN
     INSERT INTO cell_members (cell_id, user_id, role)
-    VALUES (NEW.id, NEW.owner_user_id, 'OWNER');
+    VALUES (NEW.id, NEW.owner_user_id, 'MANAGER');
 END;
 )sql";
 
-inline constexpr char BACKFILL_CELL_OWNER_MEMBERSHIPS[] = R"sql(
+inline constexpr char BACKFILL_CELL_MANAGER_MEMBERSHIPS[] = R"sql(
 INSERT OR IGNORE INTO cell_members (cell_id, user_id, role)
-SELECT id, owner_user_id, 'OWNER'
+SELECT id, owner_user_id, 'MANAGER'
 FROM cells;
 )sql";
+
+inline constexpr char DROP_LEGACY_CELL_MANAGER_TRIGGER[] = R"sql(
+DROP TRIGGER IF EXISTS add_cell_owner_membership;
+)sql";
+
+inline constexpr char DROP_CELL_MANAGER_TRIGGER[] = R"sql(
+DROP TRIGGER IF EXISTS add_cell_manager_membership;
+)sql";
+
+inline constexpr char CREATE_CELL_MEMBERS_V7_TABLE[] = R"sql(
+CREATE TABLE cell_members_v7 (
+    cell_id       INTEGER NOT NULL,
+    user_id       INTEGER NOT NULL,
+    role          TEXT NOT NULL
+                  CHECK(role IN ('MANAGER', 'MEMBER', 'GUEST')),
+    joined_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (cell_id, user_id),
+    FOREIGN KEY (cell_id) REFERENCES cells(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+)sql";
+
+inline constexpr char COPY_CELL_MEMBERS_TO_V7[] = R"sql(
+INSERT INTO cell_members_v7 (cell_id, user_id, role, joined_at)
+SELECT cell_id, user_id,
+       CASE role WHEN 'OWNER' THEN 'MANAGER' ELSE role END,
+       joined_at
+FROM cell_members;
+)sql";
+
+inline constexpr char DROP_LEGACY_CELL_MEMBERS[] = "DROP TABLE cell_members;";
+inline constexpr char RENAME_CELL_MEMBERS_V7[] =
+    "ALTER TABLE cell_members_v7 RENAME TO cell_members;";
 
 inline constexpr char CREATE_TRANSACTIONS_TABLE[] = R"sql(
 CREATE TABLE IF NOT EXISTS transactions (
@@ -177,6 +210,10 @@ WHEN NOT EXISTS (
 BEGIN
     SELECT RAISE(ABORT, 'transaction creator must be a cell member');
 END;
+)sql";
+
+inline constexpr char DROP_TRANSACTION_CREATOR_MEMBERSHIP_TRIGGER[] = R"sql(
+DROP TRIGGER IF EXISTS require_transaction_creator_membership;
 )sql";
 
 inline constexpr char ADD_CATEGORY_MONTHLY_BUDGET[] = R"sql(
