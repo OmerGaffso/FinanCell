@@ -5,10 +5,10 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: window
 
-    width: 420
-    height: 720
-    minimumWidth: 320
-    minimumHeight: 480
+    width: 1200
+    height: 800
+    minimumWidth: 700
+    minimumHeight: 500
     visible: true
     title: qsTr("FinanCell")
     color: brand.background
