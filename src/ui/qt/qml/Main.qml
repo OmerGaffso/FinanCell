@@ -5,10 +5,10 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: window
 
-    width: 420
-    height: 720
-    minimumWidth: 320
-    minimumHeight: 480
+    width: 1200
+    height: 800
+    minimumWidth: 700
+    minimumHeight: 500
     visible: true
     title: qsTr("FinanCell")
     color: brand.background
@@ -244,7 +244,8 @@ ApplicationWindow {
 
             ColumnLayout {
                 anchors.centerIn: parent
-                width: Math.min(parent.width - 48, 440)
+                width: Math.max(0, Math.min(
+                    parent.width - (parent.width < 480 ? 32 : 48), 440))
                 spacing: 16
 
                 Image {

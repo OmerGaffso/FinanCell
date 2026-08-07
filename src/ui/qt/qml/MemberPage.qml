@@ -6,6 +6,8 @@ Page {
     id: page
     focus: true
 
+    readonly property real pageMargin: width < 480 ? 16 : 24
+
     required property var controller
     required property var cellState
     signal backRequested()
@@ -21,7 +23,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
+        anchors.margins: page.pageMargin
         spacing: 14
 
         RowLayout {
@@ -81,15 +83,14 @@ Page {
                 color: brand.surface
                 border.color: brand.border
 
-                Column {
+                ColumnLayout {
                     id: content
-                    x: 14
-                    y: 14
-                    width: parent.width - 28
+                    anchors.fill: parent
+                    anchors.margins: 14
                     spacing: 6
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: modelData.displayName
                         font.pixelSize: 17
                         font.bold: true
@@ -97,16 +98,18 @@ Page {
                         elide: Text.ElideRight
                     }
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("@%1 · %2").arg(modelData.username).arg(modelData.role)
                         color: modelData.isOwner ? brand.greenDark : brand.mutedText
                     }
-                    Row {
+                    RowLayout {
+                        Layout.fillWidth: true
                         visible: controller.canManage && !modelData.isOwner
                         spacing: 8
 
                         ComboBox {
                             id: roleBox
+                            Layout.fillWidth: page.width < 480
                             model: [qsTr("Member"), qsTr("Guest")]
                             currentIndex: modelData.role === "GUEST" ? 1 : 0
                             onActivated: controller.updateMemberRole(

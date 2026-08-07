@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Page {
     id: page
     focus: true
+    readonly property real pageMargin: width < 480 ? 16 : 24
     required property var controller
     required property var cellState
     signal backRequested()
@@ -17,7 +18,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
+        anchors.margins: page.pageMargin
         spacing: 14
 
         RowLayout {
@@ -44,12 +45,16 @@ Page {
             color: brand.mutedText
         }
 
-        RowLayout {
+        GridLayout {
             Layout.fillWidth: true
             visible: controller.canCreate
+            columns: page.width < 480 ? 1 : 2
+            columnSpacing: 10
+            rowSpacing: 10
             TextField {
                 id: nameField
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 placeholderText: qsTr("New category")
                 Accessible.name: qsTr("New category name")
                 maximumLength: 50
@@ -58,6 +63,7 @@ Page {
             }
             Button {
                 id: createButton
+                Layout.fillWidth: page.width < 480
                 text: qsTr("Add")
                 enabled: nameField.text.trim().length > 0
                 palette.button: brand.green
@@ -93,13 +99,13 @@ Page {
                 color: brand.surface
                 border.color: brand.border
 
-                RowLayout {
+                GridLayout {
                     id: categoryContent
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.fill: parent
                     anchors.margins: 14
-                    spacing: 12
+                    columns: page.width < 480 ? 1 : 2
+                    columnSpacing: 12
+                    rowSpacing: 8
 
                     ColumnLayout {
                         Layout.fillWidth: true
@@ -121,6 +127,7 @@ Page {
                     }
 
                     Button {
+                        Layout.fillWidth: page.width < 480
                         visible: controller.canCreate
                         text: modelData.hasBudget ? qsTr("Change") : qsTr("Set budget")
                         Accessible.name: qsTr("Set monthly budget for %1").arg(modelData.name)

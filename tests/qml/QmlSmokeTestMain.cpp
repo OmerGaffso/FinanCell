@@ -80,24 +80,24 @@ class MockController final : public QObject
     Q_PROPERTY(QString username READ username NOTIFY stateChanged)
     Q_PROPERTY(QString displayName READ displayName NOTIFY stateChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY stateChanged)
-    Q_PROPERTY(QVariantList users READ emptyList NOTIFY stateChanged)
-    Q_PROPERTY(QVariantList cells READ emptyList NOTIFY stateChanged)
+    Q_PROPERTY(QVariantList users READ users NOTIFY stateChanged)
+    Q_PROPERTY(QVariantList cells READ cells NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap selectedCell READ selectedCell NOTIFY stateChanged)
     Q_PROPERTY(bool hasSelectedCell READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(bool canManageSelectedCell READ trueValue NOTIFY stateChanged)
-    Q_PROPERTY(QVariantList members READ emptyList NOTIFY stateChanged)
+    Q_PROPERTY(QVariantList members READ members NOTIFY stateChanged)
     Q_PROPERTY(bool canManage READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(QVariantList categories READ categories NOTIFY stateChanged)
     Q_PROPERTY(bool canCreate READ trueValue NOTIFY stateChanged)
-    Q_PROPERTY(QVariantList transactions READ emptyList NOTIFY stateChanged)
+    Q_PROPERTY(QVariantList transactions READ transactions NOTIFY stateChanged)
     Q_PROPERTY(QVariantMap selectedTransaction READ selectedTransaction NOTIFY stateChanged)
     Q_PROPERTY(bool hasSelectedTransaction READ hasSelectedTransaction WRITE setHasSelectedTransaction NOTIFY stateChanged)
     Q_PROPERTY(bool canWrite READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(QString balanceText READ balanceText NOTIFY stateChanged)
-    Q_PROPERTY(bool hasReport READ falseValue NOTIFY stateChanged)
+    Q_PROPERTY(bool hasReport READ trueValue NOTIFY stateChanged)
     Q_PROPERTY(QString totalIncomeText READ balanceText NOTIFY stateChanged)
     Q_PROPERTY(QString totalExpensesText READ balanceText NOTIFY stateChanged)
-    Q_PROPERTY(QVariantList categoryLines READ emptyList NOTIFY stateChanged)
+    Q_PROPERTY(QVariantList categoryLines READ categoryLines NOTIFY stateChanged)
 
 public:
     /** @brief Creates deterministic controller state for navigation tests. */
@@ -107,11 +107,67 @@ public:
         m_selectedCell.insert(QStringLiteral("name"), QStringLiteral("Test cell"));
         m_selectedCell.insert(QStringLiteral("description"), QStringLiteral("Test data"));
         m_selectedCell.insert(QStringLiteral("currency"), QStringLiteral("ILS"));
+        m_selectedCell.insert(QStringLiteral("balanceText"), QStringLiteral("80.00 ILS"));
+        m_selectedCell.insert(QStringLiteral("balanceInMinorUnits"), 8000);
+
+        for (int index = 1; index <= 8; ++index)
+        {
+            QVariantMap cell;
+            cell.insert(QStringLiteral("cellId"), index);
+            cell.insert(QStringLiteral("name"), QStringLiteral("Cell %1").arg(index));
+            cell.insert(QStringLiteral("balanceText"), QStringLiteral("80.00 ILS"));
+            cell.insert(QStringLiteral("balanceInMinorUnits"), 8000);
+            m_cells.append(cell);
+        }
+
+        QVariantMap user;
+        user.insert(QStringLiteral("userId"), 2);
+        user.insert(QStringLiteral("username"), QStringLiteral("member"));
+        user.insert(QStringLiteral("displayName"), QStringLiteral("Cell Member"));
+        m_users.append(user);
+
+        QVariantMap owner;
+        owner.insert(QStringLiteral("userId"), 1);
+        owner.insert(QStringLiteral("username"), QStringLiteral("tester"));
+        owner.insert(QStringLiteral("displayName"), QStringLiteral("Test User"));
+        owner.insert(QStringLiteral("role"), QStringLiteral("OWNER"));
+        owner.insert(QStringLiteral("isOwner"), true);
+        m_members.append(owner);
+
+        QVariantMap member = user;
+        member.insert(QStringLiteral("role"), QStringLiteral("MEMBER"));
+        member.insert(QStringLiteral("isOwner"), false);
+        m_members.append(member);
 
         QVariantMap category;
         category.insert(QStringLiteral("categoryId"), 7);
         category.insert(QStringLiteral("name"), QStringLiteral("General"));
+        category.insert(QStringLiteral("budgetText"), QStringLiteral("500.00 ILS"));
+        category.insert(QStringLiteral("budgetInput"), QStringLiteral("500.00"));
+        category.insert(QStringLiteral("hasBudget"), true);
         m_categories.append(category);
+
+        QVariantMap transaction;
+        transaction.insert(QStringLiteral("transactionId"), 9);
+        transaction.insert(QStringLiteral("description"), QStringLiteral("Groceries"));
+        transaction.insert(QStringLiteral("amountText"), QStringLiteral("20.00 ILS"));
+        transaction.insert(QStringLiteral("type"), QStringLiteral("EXPENSE"));
+        transaction.insert(QStringLiteral("categoryName"), QStringLiteral("General"));
+        transaction.insert(QStringLiteral("dateText"), QStringLiteral("05/08/26"));
+        transaction.insert(QStringLiteral("editable"), true);
+        m_transactions.append(transaction);
+
+        QVariantMap reportLine;
+        reportLine.insert(QStringLiteral("categoryName"), QStringLiteral("General"));
+        reportLine.insert(QStringLiteral("incomeText"), QStringLiteral("100.00 ILS"));
+        reportLine.insert(QStringLiteral("expensesText"), QStringLiteral("20.00 ILS"));
+        reportLine.insert(QStringLiteral("hasBudget"), true);
+        reportLine.insert(QStringLiteral("budgetText"), QStringLiteral("500.00 ILS"));
+        reportLine.insert(QStringLiteral("budgetProgress"), 0.04);
+        reportLine.insert(QStringLiteral("budgetUsageText"), QStringLiteral("4.0% used"));
+        reportLine.insert(QStringLiteral("budgetStatusText"), QStringLiteral("480.00 ILS remaining"));
+        reportLine.insert(QStringLiteral("overBudget"), false);
+        m_categoryLines.append(reportLine);
 
         m_selectedTransaction.insert(QStringLiteral("type"), QStringLiteral("INCOME"));
         m_selectedTransaction.insert(QStringLiteral("description"), QStringLiteral("Salary"));
@@ -125,7 +181,12 @@ public:
     QString displayName() const { return QStringLiteral("Test User"); }
     QString errorMessage() const { return {}; }
     QVariantList emptyList() const { return {}; }
+    QVariantList users() const { return m_users; }
+    QVariantList cells() const { return m_cells; }
+    QVariantList members() const { return m_members; }
     QVariantList categories() const { return m_categories; }
+    QVariantList transactions() const { return m_transactions; }
+    QVariantList categoryLines() const { return m_categoryLines; }
     QVariantMap selectedCell() const { return m_selectedCell; }
     QVariantMap selectedTransaction() const { return m_selectedTransaction; }
     bool hasSelectedTransaction() const { return m_hasSelectedTransaction; }
@@ -194,7 +255,12 @@ signals:
 private:
     bool m_loggedIn{false};
     bool m_hasSelectedTransaction{false};
+    QVariantList m_users;
+    QVariantList m_cells;
+    QVariantList m_members;
     QVariantList m_categories;
+    QVariantList m_transactions;
+    QVariantList m_categoryLines;
     QVariantMap m_selectedCell;
     QVariantMap m_selectedTransaction;
 };

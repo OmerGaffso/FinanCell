@@ -6,6 +6,8 @@ Page {
     id: page
     focus: true
 
+    readonly property real pageMargin: width < 480 ? 16 : 24
+
     required property var controller
     signal backRequested()
     signal createRequested()
@@ -24,7 +26,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
+        anchors.margins: page.pageMargin
         spacing: 14
 
         RowLayout {
@@ -66,7 +68,8 @@ Page {
         }
 
         Button {
-            Layout.fillWidth: true
+            Layout.fillWidth: page.width < 600
+            Layout.maximumWidth: 280
             text: qsTr("Create a financial cell")
             palette.button: brand.green
             palette.buttonText: brand.navyDeep
@@ -86,19 +89,28 @@ Page {
 
         GridView {
             id: cellGrid
+            objectName: "financialCellGrid"
 
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
             model: controller.cells
-            readonly property real targetCellSize: 180
+            readonly property real preferredCardWidth: 240
+            readonly property real maximumCardSize: 300
+            readonly property real cardSpacing: 12
             readonly property int columnCount: Math.max(
-                1, Math.floor(width / targetCellSize))
+                1, Math.floor((width + cardSpacing) /
+                              (preferredCardWidth + cardSpacing)))
             cellWidth: width / columnCount
-            cellHeight: cellWidth
+            cellHeight: Math.min(maximumCardSize,
+                                 Math.max(0, cellWidth - cardSpacing)) + cardSpacing
 
             delegate: Item {
                 required property var modelData
+
+                readonly property real cardSize: Math.min(
+                    cellGrid.maximumCardSize,
+                    Math.max(0, width - cellGrid.cardSpacing))
 
                 width: cellGrid.cellWidth
                 height: cellGrid.cellHeight
@@ -106,8 +118,10 @@ Page {
                 Button {
                     id: cellButton
 
-                    anchors.fill: parent
-                    anchors.margins: 6
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.cardSize
+                    height: parent.cardSize
                     padding: 16
                     text: modelData.name
                     onClicked: {

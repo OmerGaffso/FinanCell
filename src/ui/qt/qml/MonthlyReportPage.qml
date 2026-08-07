@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Page {
     id: page
     focus: true
+    readonly property real pageMargin: width < 480 ? 16 : 24
     required property var controller
     required property var cellState
     signal backRequested()
@@ -17,7 +18,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
+        anchors.margins: page.pageMargin
         spacing: 12
 
         RowLayout {
@@ -39,6 +40,7 @@ Page {
 
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.maximumWidth: 520
             spacing: 10
             DateSelector {
                 id: monthSelector

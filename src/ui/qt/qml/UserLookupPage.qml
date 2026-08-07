@@ -6,6 +6,8 @@ Page {
     id: page
     focus: true
 
+    readonly property real pageMargin: width < 480 ? 16 : 24
+
     required property var controller
     property bool selectionMode: false
     signal backRequested()
@@ -28,7 +30,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
+        anchors.margins: page.pageMargin
         spacing: 14
 
         RowLayout {
@@ -69,13 +71,16 @@ Page {
             color: brand.mutedText
         }
 
-        RowLayout {
+        GridLayout {
             Layout.fillWidth: true
-            spacing: 10
+            columns: page.width < 480 ? 1 : 2
+            columnSpacing: 10
+            rowSpacing: 10
 
             TextField {
                 id: searchField
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 placeholderText: qsTr("Search users")
                 Accessible.name: qsTr("Search registered users")
                 maximumLength: 50
@@ -86,6 +91,7 @@ Page {
 
             Button {
                 id: searchButton
+                Layout.fillWidth: page.width < 480
                 text: qsTr("Search")
                 palette.button: brand.green
                 palette.buttonText: brand.navyDeep
@@ -126,16 +132,15 @@ Page {
                 border.color: brand.border
                 border.width: 1
 
-                Column {
+                ColumnLayout {
                     id: details
 
-                    x: 14
-                    y: 14
-                    width: parent.width - 28
+                    anchors.fill: parent
+                    anchors.margins: 14
                     spacing: 3
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: modelData.displayName
                         font.pixelSize: 17
                         font.bold: true
@@ -144,20 +149,20 @@ Page {
                     }
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("@%1").arg(modelData.username)
                         elide: Text.ElideRight
                         color: brand.greenDark
                     }
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("User ID: %1").arg(modelData.userId)
                         color: brand.mutedText
                     }
 
                     Button {
-                        anchors.right: parent.right
+                        Layout.alignment: Qt.AlignRight
                         visible: page.selectionMode
                         text: qsTr("Add")
                         flat: true
