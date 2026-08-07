@@ -156,6 +156,25 @@ int main()
     const auto salaryCategory = categories.findCategoryByName(cellId, "Salary");
     const auto foodCategory = categories.findCategoryByName(cellId, "Food");
     require(salaryCategory && foodCategory, "load managed categories");
+    require(categoryService.setMonthlyBudget(
+                owner->getUserId(), cellId, foodCategory->getCategoryId(), 50000) ==
+                CategoryOperationResult::SUCCESS,
+            "owner sets category budget");
+    require(categories.findCategoryById(foodCategory->getCategoryId())
+                ->getMonthlyBudgetInMinorUnits() == 50000,
+            "category budget persists");
+    require(categoryService.setMonthlyBudget(
+                member->getUserId(), cellId, foodCategory->getCategoryId(), 45000) ==
+                CategoryOperationResult::SUCCESS,
+            "member updates category budget");
+    require(categoryService.setMonthlyBudget(
+                guest->getUserId(), cellId, foodCategory->getCategoryId(), 10000) ==
+                CategoryOperationResult::NOT_AUTHORIZED,
+            "guest cannot update category budget");
+    require(categoryService.setMonthlyBudget(
+                owner->getUserId(), cellId, foodCategory->getCategoryId(), -1) ==
+                CategoryOperationResult::INVALID_INPUT,
+            "negative category budget rejected");
 
     const auto income = transactionService.addTransaction(
         owner->getUserId(), cellId, TransactionType::INCOME, "Salary", 10000,
@@ -244,6 +263,10 @@ int main()
     require(cellService.createCell("Travel Budget", owner->getUserId(), "Trips"),
             "create second cell");
     const uint64_t secondCellId = cellService.getCellsForUser(owner->getUserId()).back().getCellId();
+    require(categoryService.setMonthlyBudget(
+                owner->getUserId(), secondCellId, foodCategory->getCategoryId(), 10000) ==
+                CategoryOperationResult::CATEGORY_NOT_FOUND,
+            "category budget cannot cross cells");
     require(categoryService.createCategory(
                 owner->getUserId(), secondCellId, "Travel") == CategoryOperationResult::SUCCESS,
             "create category in second cell");

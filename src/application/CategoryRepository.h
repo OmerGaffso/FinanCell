@@ -24,4 +24,8 @@ public:
         const std::string& name) const = 0;
     /** @brief Lists categories in a cell. @param cellId Cell ID. @return Cell categories. */
     virtual std::vector<Category> findCategoriesByCellId(std::uint64_t cellId) const = 0;
+    /** @brief Updates a category's recurring monthly budget. @param categoryId Category ID. @param amountInMinorUnits Positive budget, or zero to clear it. @return True when updated. */
+    virtual bool updateCategoryBudget(
+        std::uint64_t categoryId,
+        std::int64_t amountInMinorUnits) = 0;
 };

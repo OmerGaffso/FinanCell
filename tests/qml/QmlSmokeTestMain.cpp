@@ -166,6 +166,8 @@ public:
     Q_INVOKABLE bool removeMember(qulonglong, qulonglong) { return true; }
     Q_INVOKABLE bool loadCategories(qulonglong) { return true; }
     Q_INVOKABLE bool createCategory(qulonglong, const QString&) { return true; }
+    Q_INVOKABLE bool setMonthlyBudget(qulonglong, qulonglong, const QString&) { return true; }
+    Q_INVOKABLE bool clearMonthlyBudget(qulonglong, qulonglong) { return true; }
     Q_INVOKABLE bool loadTransactions(qulonglong) { return true; }
     Q_INVOKABLE bool loadTransactions(qulonglong, const QString&, const QString&) { return true; }
     Q_INVOKABLE bool selectTransaction(qulonglong) { return true; }

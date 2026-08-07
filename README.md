@@ -10,6 +10,7 @@ integer minor units for exact monetary calculations.
 - Financial-cell creation, listing, selection, editing, and deletion.
 - Owner-managed membership with `OWNER`, `MEMBER`, and read-only `GUEST` roles.
 - Managed, reusable categories scoped to each financial cell.
+- Optional recurring monthly budgets for each category.
 - Income and expense CRUD with descriptions, exact amounts, calendar dates, and
   category references.
 - Authorized transaction listing and date-range filtering.
@@ -59,7 +60,7 @@ The application creates its database at `data/financell.db`.
 The graphical application uses Qt 6.2 or newer with the Quick, QML, and Quick
 Controls 2 development components. It currently supports account registration
 and login, user lookup, financial-cell creation and selection, membership and
-role management, categories, transaction CRUD, monthly reports, and owner-only
+    role management, category budgets, transaction CRUD, monthly reports, and owner-only
 cell editing and deletion. GUI discovery is enabled by default:
 
 On Debian, Ubuntu, or Linux Mint, install the development and runtime modules

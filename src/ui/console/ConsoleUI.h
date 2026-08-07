@@ -70,6 +70,10 @@ private:
     void printCategories() const;
     /** @brief Creates a category in the selected cell. */
     void createCategory();
+    /** @brief Sets a monthly budget on a category in the selected cell. */
+    void setCategoryBudget();
+    /** @brief Clears a category's monthly budget in the selected cell. */
+    void clearCategoryBudget();
     /** @brief Runs a category-management action. */
     void manageCategories();
     /** @brief Prints the unauthenticated menu. */

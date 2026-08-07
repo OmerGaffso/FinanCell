@@ -158,6 +158,31 @@ int main()
     require(categoryController.createCategory(cellId, "Food") &&
                 categoryController.categories().size() == 2,
             "owner creates a category through the Qt controller");
+    const auto createdFood = categoryRepository.findCategoryByName(cellId, "Food");
+    require(createdFood && categoryController.setMonthlyBudget(
+                cellId, createdFood->getCategoryId(), QStringLiteral("450.75")),
+            "owner sets a monthly budget through the Qt controller");
+    require(categoryRepository.findCategoryById(createdFood->getCategoryId())
+                ->getMonthlyBudgetInMinorUnits() == 45075,
+            "controller converts the budget to exact minor units");
+    bool budgetPresented = false;
+    for (const QVariant& value : categoryController.categories())
+    {
+        const QVariantMap categoryValue = value.toMap();
+        if (categoryValue.value(QStringLiteral("name")).toString() ==
+                QStringLiteral("Food") &&
+            categoryValue.value(QStringLiteral("budgetText")).toString() ==
+                QStringLiteral("450.75 ILS"))
+            budgetPresented = true;
+    }
+    require(budgetPresented, "controller presents the category budget to QML");
+    require(!categoryController.setMonthlyBudget(
+                cellId, createdFood->getCategoryId(), QStringLiteral("4.567")),
+            "controller rejects excess budget precision");
+    require(categoryController.clearMonthlyBudget(cellId, createdFood->getCategoryId()) &&
+                categoryRepository.findCategoryById(createdFood->getCategoryId())
+                    ->getMonthlyBudgetInMinorUnits() == 0,
+            "controller clears a monthly category budget");
     require(!categoryController.createCategory(cellId, "food"),
             "duplicate category is rejected case-insensitively");
     require(transactionController.loadTransactions(cellId) &&

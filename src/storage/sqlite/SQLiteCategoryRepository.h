@@ -20,6 +20,9 @@ public:
         const std::string& name) const override;
     /** @copydoc CategoryRepository::findCategoriesByCellId */
     std::vector<Category> findCategoriesByCellId(std::uint64_t cellId) const override;
+    bool updateCategoryBudget(
+        std::uint64_t categoryId,
+        std::int64_t amountInMinorUnits) override;
 
 private:
     SQLiteDatabase& m_database;

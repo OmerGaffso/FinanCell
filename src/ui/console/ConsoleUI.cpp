@@ -44,6 +44,7 @@ const char* categoryResultMessage(CategoryOperationResult result)
     {
         case CategoryOperationResult::SUCCESS: return "Category created successfully.";
         case CategoryOperationResult::CELL_NOT_FOUND: return "Cell not found.";
+        case CategoryOperationResult::CATEGORY_NOT_FOUND: return "Category not found.";
         case CategoryOperationResult::INVALID_INPUT: return "Category name is invalid.";
         case CategoryOperationResult::ALREADY_EXISTS: return "Category already exists.";
         case CategoryOperationResult::NOT_AUTHORIZED: return "You cannot create categories in this cell.";
@@ -545,7 +546,12 @@ void ConsoleUI::printCategories() const
     std::cout << "\nCategories:\n";
     for (const Category& category : *categories)
         std::cout << "ID: " << category.getCategoryId()
-                  << ", Name: " << category.getName() << '\n';
+                  << ", Name: " << category.getName()
+                  << ", Monthly budget: "
+                  << (category.getMonthlyBudgetInMinorUnits() > 0
+                          ? formatMoney(category.getMonthlyBudgetInMinorUnits())
+                          : "not set")
+                  << '\n';
     std::cout << std::endl;
 }
 
@@ -558,20 +564,49 @@ void ConsoleUI::createCategory()
         m_currentUserId, m_currentCellId, name)) << "\n\n";
 }
 
+void ConsoleUI::setCategoryBudget()
+{
+    std::uint64_t categoryId;
+    if (!readId("Category ID: ", categoryId)) return;
+    std::int64_t amount;
+    if (!readAmount(amount)) return;
+    const auto result = m_categoryService.setMonthlyBudget(
+        m_currentUserId, m_currentCellId, categoryId, amount);
+    std::cout << (result == CategoryOperationResult::SUCCESS
+                      ? "Monthly budget saved."
+                      : categoryResultMessage(result))
+              << "\n\n";
+}
+
+void ConsoleUI::clearCategoryBudget()
+{
+    std::uint64_t categoryId;
+    if (!readId("Category ID: ", categoryId)) return;
+    const auto result = m_categoryService.setMonthlyBudget(
+        m_currentUserId, m_currentCellId, categoryId, 0);
+    std::cout << (result == CategoryOperationResult::SUCCESS
+                      ? "Monthly budget cleared."
+                      : categoryResultMessage(result))
+              << "\n\n";
+}
+
 void ConsoleUI::manageCategories()
 {
     const auto role = currentCellRole();
     std::cout << "1. View Categories\n";
-    if (role && *role != CellRole::GUEST) std::cout << "2. Create Category\n";
+    if (role && *role != CellRole::GUEST)
+        std::cout << "2. Create Category\n3. Set Monthly Budget\n4. Clear Monthly Budget\n";
     int choice;
     if (!readChoice(choice)) return;
-    if (choice == 2 && (!role || *role == CellRole::GUEST))
+    if (choice >= 2 && choice <= 4 && (!role || *role == CellRole::GUEST))
     {
         std::cout << "That action is not available for your role.\n\n";
         return;
     }
     if (choice == 1) printCategories();
     else if (choice == 2) createCategory();
+    else if (choice == 3) setCategoryBudget();
+    else if (choice == 4) clearCategoryBudget();
     else std::cout << "Invalid category action.\n\n";
 }
 

@@ -87,7 +87,7 @@ void testVersionFourMigration()
     SQLiteMigrations::apply(database);
 
     SQLiteStatement version(database, "PRAGMA user_version;");
-    require(version.next() && version.columnUInt64(0) == 5, "schema upgraded to v5");
+    require(version.next() && version.columnUInt64(0) == 6, "schema upgraded to v6");
 
     SQLiteCategoryRepository categories(database);
     SQLiteTransactionRepository transactions(database);
@@ -95,6 +95,8 @@ void testVersionFourMigration()
     require(cellSevenCategories.size() == 2, "General and canonical legacy category exist");
     const auto food = categories.findCategoryByName(7, "FOOD");
     require(food.has_value(), "legacy category lookup is case insensitive");
+    require(food->getMonthlyBudgetInMinorUnits() == 0,
+            "migrated categories start without a monthly budget");
     bool rejectedDuplicateCategory = false;
     try
     {
@@ -105,6 +107,16 @@ void testVersionFourMigration()
         rejectedDuplicateCategory = true;
     }
     require(rejectedDuplicateCategory, "database rejects case-insensitive category duplicate");
+    bool rejectedNegativeBudget = false;
+    try
+    {
+        categories.updateCategoryBudget(food->getCategoryId(), -1);
+    }
+    catch (const PersistenceError&)
+    {
+        rejectedNegativeBudget = true;
+    }
+    require(rejectedNegativeBudget, "database rejects a negative category budget");
 
     const auto migratedIncome = transactions.findTransactionById(10);
     const auto migratedExpense = transactions.findTransactionById(11);
@@ -189,6 +201,10 @@ void testFileBackedReopen()
                     CategoryOperationResult::SUCCESS,
                 "persist category");
         const auto category = categories.findCategoryByName(cellId, "Salary");
+        require(categoryService.setMonthlyBudget(
+                    userId, cellId, category->getCategoryId(), 250000) ==
+                    CategoryOperationResult::SUCCESS,
+                "persist category budget");
         require(transactionService.addTransaction(
                     userId, cellId, TransactionType::INCOME, "Pay", 12345,
                     "2025-06-15", category->getCategoryId()).has_value(),
@@ -209,8 +225,10 @@ void testFileBackedReopen()
         require(userService.authenticateUser("PERSISTENT", "secret55").has_value(),
                 "reopened user authenticates");
         require(cells.findCellById(cellId).has_value(), "reopened cell exists");
-        require(categories.findCategoryByName(cellId, "salary").has_value(),
-                "reopened category exists");
+        const auto reopenedCategory = categories.findCategoryByName(cellId, "salary");
+        require(reopenedCategory &&
+                    reopenedCategory->getMonthlyBudgetInMinorUnits() == 250000,
+                "reopened category budget exists");
         const auto report = reportService.generate(userId, cellId, "2025-06");
         require(report && report->totalIncomeInMinorUnits == 12345 &&
                     report->totalExpensesInMinorUnits == 0 &&

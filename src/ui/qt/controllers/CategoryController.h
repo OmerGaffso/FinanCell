@@ -38,6 +38,15 @@ public:
     Q_INVOKABLE bool loadCategories(qulonglong cellId);
     /** @brief Creates a category. @param cellId Cell ID. @param name Category name. @return True on success. */
     Q_INVOKABLE bool createCategory(qulonglong cellId, const QString& name);
+    /** @brief Sets a category's recurring monthly budget. @param cellId Cell ID. @param categoryId Category ID. @param amount Decimal major-unit amount. @return True when saved. */
+    Q_INVOKABLE bool setMonthlyBudget(
+        qulonglong cellId,
+        qulonglong categoryId,
+        const QString& amount);
+    /** @brief Clears a category's recurring monthly budget. @param cellId Cell ID. @param categoryId Category ID. @return True when cleared. */
+    Q_INVOKABLE bool clearMonthlyBudget(
+        qulonglong cellId,
+        qulonglong categoryId);
     /** @brief Clears the latest error. */
     Q_INVOKABLE void clearError();
 

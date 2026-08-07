@@ -137,6 +137,8 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
         const auto salary = categories.findCategoryByName(cellId, "Salary");
         const auto food = categories.findCategoryByName(cellId, "Food");
         require(salary && food, "load created categories");
+        require(category.setMonthlyBudget(cellId, food->getCategoryId(), "600.00"),
+                "set a monthly category budget");
 
         require(transaction.addTransaction(
                     cellId, "INCOME", "August salary", "3000.00", "2026-08-01",
@@ -237,6 +239,9 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
                 "members persist after restart");
         require(category.loadCategories(cellId) && category.categories().size() == 3,
                 "categories persist after restart");
+        const auto persistedFood = categories.findCategoryByName(cellId, "Food");
+        require(persistedFood && persistedFood->getMonthlyBudgetInMinorUnits() == 60000,
+                "category budget persists after restart");
         require(transaction.loadTransactions(cellId) && transaction.transactions().size() == 2,
                 "transaction edits and deletion persist after restart");
         require(report.generateReport(cellId, "2026-08") &&

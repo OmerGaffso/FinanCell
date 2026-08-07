@@ -14,6 +14,7 @@ enum class CategoryOperationResult
 {
     SUCCESS,
     CELL_NOT_FOUND,
+    CATEGORY_NOT_FOUND,
     INVALID_INPUT,
     ALREADY_EXISTS,
     NOT_AUTHORIZED,
@@ -35,6 +36,12 @@ public:
         std::uint64_t actingUserId,
         std::uint64_t cellId,
         const std::string& name);
+    /** @brief Sets or clears a category's monthly budget. @param actingUserId Actor ID. @param cellId Cell ID. @param categoryId Category ID. @param amountInMinorUnits Positive budget, or zero to clear it. @return Operation result. */
+    CategoryOperationResult setMonthlyBudget(
+        std::uint64_t actingUserId,
+        std::uint64_t cellId,
+        std::uint64_t categoryId,
+        std::int64_t amountInMinorUnits);
     /** @brief Lists categories visible to a cell member. @param actingUserId Actor ID. @param cellId Cell ID. @return Categories, or empty optional when unauthorized. */
     std::optional<std::vector<Category>> getCategoriesForCell(
         std::uint64_t actingUserId,

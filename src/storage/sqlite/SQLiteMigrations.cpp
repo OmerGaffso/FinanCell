@@ -141,5 +141,14 @@ void SQLiteMigrations::apply(SQLiteDatabase& database)
             database.execute(Schema::CREATE_DEFAULT_CATEGORY_TRIGGER);
             database.execute(Schema::CREATE_TRANSACTION_CREATOR_MEMBERSHIP_TRIGGER);
         });
+        version = 5;
+    }
+
+    if (version < 6)
+    {
+        applyMigration(database, 6, [&database]
+        {
+            database.execute(Schema::ADD_CATEGORY_MONTHLY_BUDGET);
+        });
     }
 }

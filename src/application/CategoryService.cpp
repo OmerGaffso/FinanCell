@@ -39,6 +39,37 @@ CategoryOperationResult CategoryService::createCategory(
     }
 }
 
+CategoryOperationResult CategoryService::setMonthlyBudget(
+    std::uint64_t actingUserId,
+    std::uint64_t cellId,
+    std::uint64_t categoryId,
+    std::int64_t amountInMinorUnits)
+{
+    if (!m_cellRepository.findCellById(cellId))
+        return CategoryOperationResult::CELL_NOT_FOUND;
+
+    const auto membership = m_cellRepository.findMember(cellId, actingUserId);
+    if (!membership || membership->role == CellRole::GUEST)
+        return CategoryOperationResult::NOT_AUTHORIZED;
+
+    const auto category = m_categoryRepository.findCategoryById(categoryId);
+    if (!category || category->getCellId() != cellId)
+        return CategoryOperationResult::CATEGORY_NOT_FOUND;
+    if (amountInMinorUnits < 0)
+        return CategoryOperationResult::INVALID_INPUT;
+
+    try
+    {
+        return m_categoryRepository.updateCategoryBudget(categoryId, amountInMinorUnits)
+            ? CategoryOperationResult::SUCCESS
+            : CategoryOperationResult::STORAGE_ERROR;
+    }
+    catch (const PersistenceError&)
+    {
+        return CategoryOperationResult::STORAGE_ERROR;
+    }
+}
+
 std::optional<std::vector<Category>> CategoryService::getCategoriesForCell(
     std::uint64_t actingUserId,
     std::uint64_t cellId) const

@@ -178,4 +178,10 @@ BEGIN
     SELECT RAISE(ABORT, 'transaction creator must be a cell member');
 END;
 )sql";
+
+inline constexpr char ADD_CATEGORY_MONTHLY_BUDGET[] = R"sql(
+ALTER TABLE categories
+ADD COLUMN budget_minor INTEGER NOT NULL DEFAULT 0
+CHECK(budget_minor >= 0);
+)sql";
 }
