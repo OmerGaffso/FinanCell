@@ -19,6 +19,7 @@ Page {
         anchors.fill: parent
         contentWidth: availableWidth
         ColumnLayout {
+            objectName: "formContent"
             anchors.horizontalCenter: parent.horizontalCenter
             width: Math.max(0, Math.min(
                 formScroll.availableWidth - (2 * page.pageMargin), 440))
