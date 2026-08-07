@@ -117,6 +117,16 @@ int main()
             "second owner role rejected");
     require(cellService.getCellsForUser(member->getUserId()).size() == 1,
             "member can see joined cell");
+    const auto memberSummaries = cellService.getCellMemberSummaries(
+        owner->getUserId(), cellId);
+    require(memberSummaries && memberSummaries->size() == 3,
+            "cell members load as public identity summaries");
+    require(memberSummaries->front().getUsername() == "owner" &&
+                memberSummaries->front().getRole() == CellRole::OWNER,
+            "member summary includes username and role without account secrets");
+    require(!cellService.getCellMemberSummaries(
+                users.findUserByUsername("secure")->getUserId(), cellId),
+            "non-members cannot load member summaries");
     require(cellService.updateMemberRole(
                 owner->getUserId(), cellId, guest->getUserId(), CellRole::MEMBER) == CellOperationResult::SUCCESS,
             "owner changes member role");

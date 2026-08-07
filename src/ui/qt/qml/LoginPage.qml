@@ -17,7 +17,10 @@ Page {
         id: brand
     }
 
-    Component.onCompleted: controller.clearError()
+    Component.onCompleted: {
+        controller.clearError()
+        usernameField.forceActiveFocus()
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -70,6 +73,7 @@ Page {
                 id: usernameField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Username")
+                Accessible.name: qsTr("Username")
                 inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
                 onTextEdited: {
                     page.notice = ""
@@ -81,6 +85,7 @@ Page {
                 id: passwordField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Password")
+                Accessible.name: qsTr("Password")
                 echoMode: TextInput.Password
                 onTextEdited: controller.clearError()
                 onAccepted: loginButton.clicked()

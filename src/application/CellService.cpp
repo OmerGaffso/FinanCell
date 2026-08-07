@@ -150,6 +150,27 @@ std::vector<CellMember> CellService::getCellMembers(
     return m_cellRepository.findMembersByCellId(cellId);
 }
 
+std::optional<std::vector<CellMemberSummary>> CellService::getCellMemberSummaries(
+    std::uint64_t actingUserId,
+    std::uint64_t cellId) const
+{
+    if (!isMember(actingUserId, cellId)) return std::nullopt;
+
+    std::vector<CellMemberSummary> summaries;
+    for (const CellMember& member : m_cellRepository.findMembersByCellId(cellId))
+    {
+        const auto user = m_userRepository.findUserSummaryById(member.userId);
+        if (!user)
+            throw std::runtime_error("A cell membership references an unknown user.");
+        summaries.emplace_back(
+            user->getUserId(),
+            user->getUsername(),
+            user->getDisplayName(),
+            member.role);
+    }
+    return summaries;
+}
+
 bool CellService::isOwner(uint64_t userId, const FinancialCell& cell) const
 {
     return userId != 0 && cell.getOwnerId() == userId;

@@ -79,6 +79,13 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/CellListPage.qml
             src/ui/qt/qml/CreateCellPage.qml
             src/ui/qt/qml/CellDashboardPage.qml
+            src/ui/qt/qml/MemberPage.qml
+            src/ui/qt/qml/CategoryPage.qml
+            src/ui/qt/qml/TransactionPage.qml
+            src/ui/qt/qml/TransactionFormPage.qml
+            src/ui/qt/qml/MonthlyReportPage.qml
+            src/ui/qt/qml/DateSelector.qml
+            src/ui/qt/qml/CellSettingsPage.qml
             src/ui/qt/qml/UserLookupPage.qml
             src/ui/qt/qml/BrandPalette.qml
         )
@@ -96,6 +103,20 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS CreateCellPage.qml)
         set_source_files_properties(src/ui/qt/qml/CellDashboardPage.qml
             PROPERTIES QT_RESOURCE_ALIAS CellDashboardPage.qml)
+        set_source_files_properties(src/ui/qt/qml/MemberPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS MemberPage.qml)
+        set_source_files_properties(src/ui/qt/qml/CategoryPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS CategoryPage.qml)
+        set_source_files_properties(src/ui/qt/qml/TransactionPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS TransactionPage.qml)
+        set_source_files_properties(src/ui/qt/qml/TransactionFormPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS TransactionFormPage.qml)
+        set_source_files_properties(src/ui/qt/qml/MonthlyReportPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS MonthlyReportPage.qml)
+        set_source_files_properties(src/ui/qt/qml/DateSelector.qml
+            PROPERTIES QT_RESOURCE_ALIAS DateSelector.qml)
+        set_source_files_properties(src/ui/qt/qml/CellSettingsPage.qml
+            PROPERTIES QT_RESOURCE_ALIAS CellSettingsPage.qml)
         set_source_files_properties(src/ui/qt/qml/UserLookupPage.qml
             PROPERTIES QT_RESOURCE_ALIAS UserLookupPage.qml)
         set_source_files_properties(src/ui/qt/qml/BrandPalette.qml
@@ -107,8 +128,18 @@ if(FINANCELL_BUILD_GUI)
 
         qt_add_executable(FinanCellGui
             src/gui_main.cpp
+            src/ui/qt/GuiDatabasePath.cpp
+            src/ui/qt/GuiDatabasePath.h
             src/ui/qt/controllers/CellController.cpp
             src/ui/qt/controllers/CellController.h
+            src/ui/qt/controllers/CategoryController.cpp
+            src/ui/qt/controllers/CategoryController.h
+            src/ui/qt/controllers/MemberController.cpp
+            src/ui/qt/controllers/MemberController.h
+            src/ui/qt/controllers/TransactionController.cpp
+            src/ui/qt/controllers/TransactionController.h
+            src/ui/qt/controllers/ReportController.cpp
+            src/ui/qt/controllers/ReportController.h
             src/ui/qt/controllers/UserController.cpp
             src/ui/qt/controllers/UserController.h
             src/ui/qt/session/SessionState.cpp
@@ -137,10 +168,20 @@ if(FINANCELL_BUILD_GUI)
         financell_enable_warnings(FinanCellGui)
 
         if(BUILD_TESTING)
+            find_package(Qt6 6.2 QUIET COMPONENTS QuickTest)
+
             add_executable(FinanCellQtCellControllerTests
                 tests/QtCellControllerTests.cpp
                 src/ui/qt/controllers/CellController.cpp
                 src/ui/qt/controllers/CellController.h
+                src/ui/qt/controllers/CategoryController.cpp
+                src/ui/qt/controllers/CategoryController.h
+                src/ui/qt/controllers/MemberController.cpp
+                src/ui/qt/controllers/MemberController.h
+                src/ui/qt/controllers/TransactionController.cpp
+                src/ui/qt/controllers/TransactionController.h
+                src/ui/qt/controllers/ReportController.cpp
+                src/ui/qt/controllers/ReportController.h
                 src/ui/qt/session/SessionState.cpp
                 src/ui/qt/session/SessionState.h
             )
@@ -153,6 +194,74 @@ if(FINANCELL_BUILD_GUI)
             )
             financell_enable_warnings(FinanCellQtCellControllerTests)
             add_test(NAME QtCellController COMMAND FinanCellQtCellControllerTests)
+
+            add_executable(FinanCellGuiMvpAcceptanceTests
+                tests/GuiMvpAcceptanceTests.cpp
+                src/ui/qt/controllers/CellController.cpp
+                src/ui/qt/controllers/CellController.h
+                src/ui/qt/controllers/CategoryController.cpp
+                src/ui/qt/controllers/CategoryController.h
+                src/ui/qt/controllers/MemberController.cpp
+                src/ui/qt/controllers/MemberController.h
+                src/ui/qt/controllers/TransactionController.cpp
+                src/ui/qt/controllers/TransactionController.h
+                src/ui/qt/controllers/ReportController.cpp
+                src/ui/qt/controllers/ReportController.h
+                src/ui/qt/controllers/UserController.cpp
+                src/ui/qt/controllers/UserController.h
+                src/ui/qt/session/SessionState.cpp
+                src/ui/qt/session/SessionState.h
+            )
+            set_target_properties(FinanCellGuiMvpAcceptanceTests PROPERTIES AUTOMOC ON)
+            target_include_directories(FinanCellGuiMvpAcceptanceTests
+                PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+            target_link_libraries(FinanCellGuiMvpAcceptanceTests PRIVATE
+                FinanCellCore
+                Qt6::Core
+            )
+            financell_enable_warnings(FinanCellGuiMvpAcceptanceTests)
+            add_test(NAME GuiMvpAcceptance COMMAND FinanCellGuiMvpAcceptanceTests)
+
+            add_executable(FinanCellGuiDatabasePathTests
+                tests/GuiDatabasePathTests.cpp
+                src/ui/qt/GuiDatabasePath.cpp
+                src/ui/qt/GuiDatabasePath.h
+            )
+            target_include_directories(FinanCellGuiDatabasePathTests
+                PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+            target_link_libraries(FinanCellGuiDatabasePathTests PRIVATE Qt6::Core)
+            financell_enable_warnings(FinanCellGuiDatabasePathTests)
+            add_test(NAME GuiDatabasePath COMMAND FinanCellGuiDatabasePathTests)
+
+            if(TARGET Qt6::QuickTest)
+                add_executable(FinanCellQmlSmokeTests
+                    tests/qml/QmlSmokeTestMain.cpp
+                )
+                set_target_properties(FinanCellQmlSmokeTests PROPERTIES AUTOMOC ON)
+                target_compile_definitions(FinanCellQmlSmokeTests PRIVATE
+                    QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/qml")
+                target_link_libraries(FinanCellQmlSmokeTests PRIVATE
+                    Qt6::QuickTest
+                    Qt6::QuickControls2
+                )
+                qt_add_resources(FinanCellQmlSmokeTests financell_test_assets
+                    PREFIX /assets
+                    FILES
+                        "data/assets/FinanCell Icon.png"
+                        "data/assets/FinanCell Banner Light.png"
+                )
+                financell_enable_warnings(FinanCellQmlSmokeTests)
+                add_test(NAME QmlNavigation COMMAND FinanCellQmlSmokeTests)
+                set_tests_properties(QmlNavigation PROPERTIES ENVIRONMENT
+                    "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;QT_QUICK_CONTROLS_STYLE=Basic")
+                add_test(NAME QmlLint
+                    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
+                        --target FinanCellGui_qmllint)
+                set_tests_properties(QmlLint PROPERTIES RUN_SERIAL TRUE)
+            else()
+                message(WARNING
+                    "Qt Quick Test was not found. GUI navigation smoke tests will not be built.")
+            endif()
         endif()
     else()
         message(WARNING

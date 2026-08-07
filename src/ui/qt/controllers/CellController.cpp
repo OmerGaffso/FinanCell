@@ -102,6 +102,13 @@ bool CellController::hasSelectedCell() const
     return !m_selectedCell.isEmpty();
 }
 
+bool CellController::canManageSelectedCell() const
+{
+    return hasSelectedCell() &&
+           m_selectedCell.value(QStringLiteral("ownerId")).toULongLong() ==
+               m_session.userId();
+}
+
 bool CellController::loadCells()
 {
     clearError();
@@ -246,6 +253,74 @@ void CellController::clearSelection()
     if (m_selectedCell.isEmpty()) return;
     m_selectedCell.clear();
     emit selectedCellChanged();
+}
+
+bool CellController::updateSelectedCell(
+    const QString& name,
+    const QString& description)
+{
+    clearError();
+    if (!canManageSelectedCell())
+    {
+        setErrorMessage(QStringLiteral("Only the cell owner can edit its details."));
+        return false;
+    }
+    try
+    {
+        const qulonglong cellId = m_selectedCell
+            .value(QStringLiteral("cellId")).toULongLong();
+        const auto result = m_cellService.updateCell(
+            m_session.userId(), cellId, name.toStdString(), description.toStdString());
+        if (result != CellOperationResult::SUCCESS)
+        {
+            setErrorMessage(result == CellOperationResult::INVALID_INPUT
+                ? QStringLiteral("Cell names must be 3–50 characters and descriptions at most 200.")
+                : result == CellOperationResult::NOT_AUTHORIZED
+                  ? QStringLiteral("Only the cell owner can edit its details.")
+                  : QStringLiteral("The cell changes could not be saved."));
+            return false;
+        }
+        if (!loadCells() || !selectCell(cellId)) return false;
+        return true;
+    }
+    catch (const std::exception& error)
+    {
+        qCritical().noquote() << "Financial-cell update failed:" << error.what();
+        setErrorMessage(QStringLiteral("The cell changes could not be saved."));
+        return false;
+    }
+}
+
+bool CellController::deleteSelectedCell()
+{
+    clearError();
+    if (!canManageSelectedCell())
+    {
+        setErrorMessage(QStringLiteral("Only the cell owner can delete this cell."));
+        return false;
+    }
+    try
+    {
+        const qulonglong cellId = m_selectedCell
+            .value(QStringLiteral("cellId")).toULongLong();
+        const auto result = m_cellService.deleteCell(m_session.userId(), cellId);
+        if (result != CellOperationResult::SUCCESS)
+        {
+            setErrorMessage(result == CellOperationResult::NOT_AUTHORIZED
+                ? QStringLiteral("Only the cell owner can delete this cell.")
+                : QStringLiteral("The financial cell could not be deleted."));
+            return false;
+        }
+        clearSelection();
+        loadCells();
+        return true;
+    }
+    catch (const std::exception& error)
+    {
+        qCritical().noquote() << "Financial-cell deletion failed:" << error.what();
+        setErrorMessage(QStringLiteral("The financial cell could not be deleted."));
+        return false;
+    }
 }
 
 void CellController::clearError()

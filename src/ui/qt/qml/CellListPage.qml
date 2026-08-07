@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
 
     required property var controller
     signal backRequested()
@@ -19,6 +20,7 @@ Page {
     }
 
     Component.onCompleted: controller.loadCells()
+    Keys.onEscapePressed: page.backRequested()
 
     ColumnLayout {
         anchors.fill: parent

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
 
     required property var controller
     property string localError: ""
@@ -18,7 +19,12 @@ Page {
         id: brand
     }
 
-    Component.onCompleted: controller.clearError()
+    Keys.onEscapePressed: page.backRequested()
+
+    Component.onCompleted: {
+        controller.clearError()
+        usernameField.forceActiveFocus()
+    }
 
     function clearMessages() {
         localError = ""
@@ -61,6 +67,7 @@ Page {
                 id: usernameField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Username")
+                Accessible.name: qsTr("Username")
                 inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
                 onTextEdited: page.clearMessages()
             }
@@ -69,6 +76,7 @@ Page {
                 id: displayNameField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Display name")
+                Accessible.name: qsTr("Display name")
                 onTextEdited: page.clearMessages()
             }
 
@@ -76,6 +84,7 @@ Page {
                 id: passwordField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Password")
+                Accessible.name: qsTr("Password")
                 echoMode: TextInput.Password
                 onTextEdited: page.clearMessages()
             }
@@ -84,6 +93,7 @@ Page {
                 id: confirmationField
                 Layout.fillWidth: true
                 placeholderText: qsTr("Confirm password")
+                Accessible.name: qsTr("Confirm password")
                 echoMode: TextInput.Password
                 onTextEdited: page.clearMessages()
                 onAccepted: registerButton.clicked()

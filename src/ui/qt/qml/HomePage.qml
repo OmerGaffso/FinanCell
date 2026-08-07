@@ -4,6 +4,7 @@ import QtQuick.Layouts
 
 Page {
     id: page
+    focus: true
 
     required property var controller
     signal financialCellsRequested()
@@ -68,6 +69,7 @@ Page {
         Button {
             Layout.fillWidth: true
             text: qsTr("Log out")
+            Accessible.description: qsTr("End the current FinanCell session")
             flat: true
             palette.buttonText: brand.greenDark
             onClicked: controller.logout()

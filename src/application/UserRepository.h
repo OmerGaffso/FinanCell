@@ -26,6 +26,9 @@ public:
     virtual std::optional<User> findUserById(std::uint64_t userId) const = 0;
     /** @brief Finds a user by username. @param username Username. @return Matching user, or empty. */
     virtual std::optional<User> findUserByUsername(const std::string& username) const = 0;
+    /** @brief Finds public user-directory fields by ID. @param userId User ID. @return Public summary, or empty. */
+    virtual std::optional<UserSummary> findUserSummaryById(
+        std::uint64_t userId) const = 0;
     /** @brief Searches public user-directory fields. @param query Case-insensitive username or display-name fragment. @param limit Maximum result count. @return Matching public summaries. */
     virtual std::vector<UserSummary> findUserSummaries(
         const std::string& query,
