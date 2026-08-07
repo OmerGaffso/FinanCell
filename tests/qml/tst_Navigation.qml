@@ -90,6 +90,13 @@ TestCase {
         expectPage("transactionPage")
         stack.currentItem.addRequested()
         expectPage("transactionFormPage")
+        const addPicker = findChild(stack.currentItem, "categoryPickerDialog")
+        verify(addPicker !== null)
+        addPicker.open()
+        tryCompare(addPicker, "visible", true)
+        compare(testDiagnostics.errors.length, 0,
+                testDiagnostics.errors.join("\n"))
+        addPicker.close()
         stack.currentItem.backRequested()
         expectPage("transactionPage")
 

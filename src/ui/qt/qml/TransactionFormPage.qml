@@ -15,6 +15,8 @@ Page {
     readonly property bool amountValid: /^\d+(\.\d{1,2})?$/.test(
                                             amountField.text.trim())
     readonly property var selectedCell: cellState.selectedCell
+    property var selectedCategoryId: 0
+    property string selectedCategoryName: ""
     background: Rectangle { color: brand.background }
     BrandPalette { id: brand }
     Keys.onEscapePressed: page.backRequested()
@@ -33,10 +35,11 @@ Page {
     function selectCurrentCategory() {
         if (!editMode)
             return
-        for (let index = 0; index < categoryBox.count; ++index) {
-            if (categoryBox.model[index].categoryId ===
+        for (let index = 0; index < categoryState.categories.length; ++index) {
+            if (categoryState.categories[index].categoryId ===
                     controller.selectedTransaction.categoryId) {
-                categoryBox.currentIndex = index
+                selectedCategoryId = categoryState.categories[index].categoryId
+                selectedCategoryName = categoryState.categories[index].name
                 return
             }
         }
@@ -92,12 +95,14 @@ Page {
                 title: qsTr("Transaction date")
                 onIsoValueChanged: controller.clearError()
             }
-            ComboBox {
-                id: categoryBox
+            Button {
+                id: categoryButton
                 Layout.fillWidth: true
-                model: categoryState.categories
-                textRole: "name"
-                valueRole: "categoryId"
+                text: page.selectedCategoryId > 0
+                      ? qsTr("Category: %1").arg(page.selectedCategoryName)
+                      : qsTr("Choose a category")
+                Accessible.description: qsTr("Opens a grid of transaction categories")
+                onClicked: categoryPicker.open()
             }
             Label {
                 Layout.fillWidth: true
@@ -111,7 +116,7 @@ Page {
                 text: page.editMode ? qsTr("Save changes") : qsTr("Add transaction")
                 enabled: descriptionField.text.trim().length > 0 &&
                          page.amountValid &&
-                         categoryBox.currentIndex >= 0
+                         page.selectedCategoryId > 0
                 palette.button: brand.green
                 palette.buttonText: brand.navyDeep
                 onClicked: {
@@ -120,11 +125,11 @@ Page {
                         ? controller.updateTransaction(
                               page.selectedCell.cellId, type,
                               descriptionField.text, amountField.text,
-                              dateSelector.isoValue, categoryBox.currentValue)
+                              dateSelector.isoValue, page.selectedCategoryId)
                         : controller.addTransaction(
                               page.selectedCell.cellId, type,
                               descriptionField.text, amountField.text,
-                              dateSelector.isoValue, categoryBox.currentValue)
+                              dateSelector.isoValue, page.selectedCategoryId)
                     if (successful)
                         page.saved()
                 }
@@ -136,6 +141,18 @@ Page {
                 palette.buttonText: brand.greenDark
                 onClicked: page.backRequested()
             }
+        }
+    }
+
+    CategoryPickerDialog {
+        id: categoryPicker
+        categories: categoryState.categories
+        selectedCategoryId: page.selectedCategoryId
+        selectedCategoryName: page.selectedCategoryName
+        onCategorySelected: function(category) {
+            page.selectedCategoryId = category.categoryId
+            page.selectedCategoryName = category.name
+            controller.clearError()
         }
     }
 }

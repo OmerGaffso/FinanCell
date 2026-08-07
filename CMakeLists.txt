@@ -81,6 +81,7 @@ if(FINANCELL_BUILD_GUI)
             src/ui/qt/qml/CellDashboardPage.qml
             src/ui/qt/qml/MemberPage.qml
             src/ui/qt/qml/CategoryPage.qml
+            src/ui/qt/qml/CategoryPickerDialog.qml
             src/ui/qt/qml/TransactionPage.qml
             src/ui/qt/qml/TransactionFormPage.qml
             src/ui/qt/qml/MonthlyReportPage.qml
@@ -107,6 +108,8 @@ if(FINANCELL_BUILD_GUI)
             PROPERTIES QT_RESOURCE_ALIAS MemberPage.qml)
         set_source_files_properties(src/ui/qt/qml/CategoryPage.qml
             PROPERTIES QT_RESOURCE_ALIAS CategoryPage.qml)
+        set_source_files_properties(src/ui/qt/qml/CategoryPickerDialog.qml
+            PROPERTIES QT_RESOURCE_ALIAS CategoryPickerDialog.qml)
         set_source_files_properties(src/ui/qt/qml/TransactionPage.qml
             PROPERTIES QT_RESOURCE_ALIAS TransactionPage.qml)
         set_source_files_properties(src/ui/qt/qml/TransactionFormPage.qml
