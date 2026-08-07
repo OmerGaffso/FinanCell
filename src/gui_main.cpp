@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
         transactionService = std::make_unique<TransactionService>(
             *transactionRepository, *cellRepository, *categoryRepository);
         reportService = std::make_unique<MonthlyReportService>(
-            *transactionRepository, *cellRepository);
+            *transactionRepository, *cellRepository, *categoryRepository);
         session = std::make_unique<SessionState>();
         userController = std::make_unique<UserController>(*userService, *session);
         cellController = std::make_unique<CellController>(

@@ -94,7 +94,7 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
         CellService cellService(cells, users);
         CategoryService categoryService(categories, cells);
         TransactionService transactionService(transactions, cells, categories);
-        MonthlyReportService reportService(transactions, cells);
+        MonthlyReportService reportService(transactions, cells, categories);
         SessionState session;
         UserController user(userService, session);
         CellController cell(cellService, transactionService, session);
@@ -176,6 +176,21 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
                     report.balanceText() == QStringLiteral("2800.00 ILS") &&
                     report.categoryLines().size() == 2,
                 "generate monthly totals and category breakdown");
+        bool budgetProgressPresented = false;
+        for (const QVariant& value : report.categoryLines())
+        {
+            const QVariantMap line = value.toMap();
+            if (line.value(QStringLiteral("categoryName")).toString() ==
+                    QStringLiteral("Food") &&
+                line.value(QStringLiteral("budgetText")).toString() ==
+                    QStringLiteral("600.00 ILS") &&
+                line.value(QStringLiteral("remainingBudgetText")).toString() ==
+                    QStringLiteral("400.00 ILS") &&
+                !line.value(QStringLiteral("overBudget")).toBool())
+                budgetProgressPresented = true;
+        }
+        require(budgetProgressPresented,
+                "monthly report presents remaining category budget");
         require(cell.updateSelectedCell("Household 2026", "Updated shared expenses"),
                 "owner edits cell details");
 
@@ -220,7 +235,7 @@ void runAcceptancePass(const std::filesystem::path& databasePath)
         CellService cellService(cells, users);
         CategoryService categoryService(categories, cells);
         TransactionService transactionService(transactions, cells, categories);
-        MonthlyReportService reportService(transactions, cells);
+        MonthlyReportService reportService(transactions, cells, categories);
         SessionState session;
         UserController user(userService, session);
         CellController cell(cellService, transactionService, session);

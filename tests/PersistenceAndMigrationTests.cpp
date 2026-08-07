@@ -220,7 +220,7 @@ void testFileBackedReopen()
         SQLiteTransactionRepository transactions(database);
         SodiumPasswordHasher hasher;
         UserService userService(users, hasher);
-        MonthlyReportService reportService(transactions, cells);
+        MonthlyReportService reportService(transactions, cells, categories);
 
         require(userService.authenticateUser("PERSISTENT", "secret55").has_value(),
                 "reopened user authenticates");

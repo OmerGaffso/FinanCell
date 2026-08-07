@@ -529,7 +529,21 @@ void ConsoleUI::printMonthlyReport()
     {
         std::cout << "  " << line.categoryName
                   << ": income " << formatMoney(line.incomeInMinorUnits)
-                  << ", expenses " << formatMoney(line.expensesInMinorUnits) << '\n';
+                  << ", expenses " << formatMoney(line.expensesInMinorUnits);
+        if (line.monthlyBudgetInMinorUnits > 0)
+        {
+            const long double usage =
+                static_cast<long double>(line.expensesInMinorUnits) * 100.0L /
+                static_cast<long double>(line.monthlyBudgetInMinorUnits);
+            std::cout << ", budget " << formatMoney(line.monthlyBudgetInMinorUnits)
+                      << ", " << std::fixed << std::setprecision(1)
+                      << static_cast<double>(usage) << "% used, "
+                      << (line.overBudget ? "over by " : "remaining ")
+                      << formatMoney(line.overBudget
+                              ? -line.remainingBudgetInMinorUnits
+                              : line.remainingBudgetInMinorUnits);
+        }
+        std::cout << '\n';
     }
     std::cout << std::endl;
 }

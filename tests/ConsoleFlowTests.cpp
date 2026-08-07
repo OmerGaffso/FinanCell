@@ -116,7 +116,7 @@ int main()
     CellService cellService(cells, users);
     CategoryService categoryService(categories, cells);
     TransactionService transactionService(transactions, cells, categories);
-    MonthlyReportService reportService(transactions, cells);
+    MonthlyReportService reportService(transactions, cells, categories);
 
     std::string username = "owner";
     std::string displayName = "Owner User";
@@ -172,7 +172,7 @@ int main()
     CellService failingCellService(throwingCells, users);
     CategoryService failingCategoryService(categories, throwingCells);
     TransactionService failingTransactionService(transactions, throwingCells, categories);
-    MonthlyReportService failingReportService(transactions, throwingCells);
+    MonthlyReportService failingReportService(transactions, throwingCells, categories);
     std::istringstream failureInput("2\nowner\nsecret1\n3\n1\n4\n0\n");
     std::ostringstream failureOutput;
     {

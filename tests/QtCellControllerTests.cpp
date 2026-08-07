@@ -45,7 +45,8 @@ int main()
     CategoryService categoryService(categoryRepository, cellRepository);
     TransactionService transactionService(
         transactionRepository, cellRepository, categoryRepository);
-    MonthlyReportService reportService(transactionRepository, cellRepository);
+    MonthlyReportService reportService(
+        transactionRepository, cellRepository, categoryRepository);
 
     require(
         userRepository.insertUser("owner", "Cell Owner", "unused-test-hash"),
@@ -183,6 +184,9 @@ int main()
                 categoryRepository.findCategoryById(createdFood->getCategoryId())
                     ->getMonthlyBudgetInMinorUnits() == 0,
             "controller clears a monthly category budget");
+    require(categoryController.setMonthlyBudget(
+                cellId, categories.front().getCategoryId(), QStringLiteral("100.00")),
+            "controller sets a budget used by the monthly report");
     require(!categoryController.createCategory(cellId, "food"),
             "duplicate category is rejected case-insensitively");
     require(transactionController.loadTransactions(cellId) &&
@@ -222,6 +226,19 @@ int main()
                 reportController.totalExpensesText() == "200.00 ILS" &&
                 reportController.balanceText() == "-75.00 ILS",
             "report controller exposes monthly totals and balance");
+    bool overBudgetPresented = false;
+    for (const QVariant& value : reportController.categoryLines())
+    {
+        const QVariantMap line = value.toMap();
+        if (line.value(QStringLiteral("categoryName")).toString() ==
+                QStringLiteral("General") &&
+            line.value(QStringLiteral("overBudget")).toBool() &&
+            line.value(QStringLiteral("budgetStatusText")).toString() ==
+                QStringLiteral("100.00 ILS over budget"))
+            overBudgetPresented = true;
+    }
+    require(overBudgetPresented,
+            "report controller exposes category over-budget status to QML");
     require(controller.loadCells() && controller.selectCell(cellId) &&
                 controller.canManageSelectedCell(),
             "owner selects the cell for settings");

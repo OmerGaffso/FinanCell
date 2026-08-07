@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "application/CellRepository.h"
+#include "application/CategoryRepository.h"
 #include "application/TransactionRepository.h"
 
 /** @brief Income and expense totals for one category. */
@@ -19,6 +20,12 @@ struct CategoryReportLine
     std::int64_t incomeInMinorUnits{0};
     /** @brief Category expense total in minor units. */
     std::int64_t expensesInMinorUnits{0};
+    /** @brief Recurring monthly budget in minor units, or zero when unset. */
+    std::int64_t monthlyBudgetInMinorUnits{0};
+    /** @brief Budget minus monthly expenses in minor units. */
+    std::int64_t remainingBudgetInMinorUnits{0};
+    /** @brief Whether monthly expenses exceed the configured budget. */
+    bool overBudget{false};
 };
 
 /** @brief Required monthly financial report for one cell. */
@@ -40,10 +47,11 @@ struct MonthlyReport
 class MonthlyReportService
 {
 public:
-    /** @brief Creates the service. @param transactionRepository Transaction persistence. @param cellRepository Cell persistence. */
+    /** @brief Creates the service. @param transactionRepository Transaction persistence. @param cellRepository Cell persistence. @param categoryRepository Category and budget persistence. */
     MonthlyReportService(
         TransactionRepository& transactionRepository,
-        CellRepository& cellRepository);
+        CellRepository& cellRepository,
+        CategoryRepository& categoryRepository);
 
     /** @brief Generates a report. @param actingUserId Actor ID. @param cellId Cell ID. @param month YYYY-MM. @return Report, or empty for invalid/unauthorized requests. */
     std::optional<MonthlyReport> generate(
@@ -54,4 +62,5 @@ public:
 private:
     TransactionRepository& m_transactionRepository;
     CellRepository& m_cellRepository;
+    CategoryRepository& m_categoryRepository;
 };

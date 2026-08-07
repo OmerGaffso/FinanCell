@@ -133,19 +133,54 @@ Page {
             delegate: Rectangle {
                 required property var modelData
                 width: reportList.width
-                height: 82
+                height: reportContent.implicitHeight + 24
                 radius: 12
                 color: brand.surface
-                border.color: brand.border
-                Column {
+                border.color: modelData.overBudget ? brand.danger : brand.border
+                border.width: modelData.overBudget ? 2 : 1
+                ColumnLayout {
+                    id: reportContent
                     anchors.fill: parent
                     anchors.margins: 12
                     spacing: 4
-                    Label { text: modelData.categoryName; font.bold: true; color: brand.navy }
                     Label {
+                        Layout.fillWidth: true
+                        text: modelData.categoryName
+                        font.bold: true
+                        color: brand.navy
+                    }
+                    Label {
+                        Layout.fillWidth: true
                         text: qsTr("Income %1 · Expenses %2")
                               .arg(modelData.incomeText).arg(modelData.expensesText)
                         color: brand.mutedText
+                        wrapMode: Text.WordWrap
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        visible: modelData.hasBudget
+                        text: qsTr("Monthly budget: %1").arg(modelData.budgetText)
+                        color: brand.navy
+                    }
+                    ProgressBar {
+                        Layout.fillWidth: true
+                        visible: modelData.hasBudget
+                        from: 0
+                        to: 1
+                        value: modelData.budgetProgress
+                        Accessible.name: qsTr("%1 budget usage: %2")
+                                         .arg(modelData.categoryName)
+                                         .arg(modelData.budgetUsageText)
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        visible: modelData.hasBudget
+                        text: qsTr("%1 · %2")
+                              .arg(modelData.budgetUsageText)
+                              .arg(modelData.budgetStatusText)
+                        color: modelData.overBudget ? brand.danger : brand.greenDark
+                        font.bold: modelData.overBudget
+                        wrapMode: Text.WordWrap
                     }
                 }
             }

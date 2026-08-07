@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -34,7 +35,7 @@ int main()
     CellService cellService(cells, users);
     CategoryService categoryService(categories, cells);
     TransactionService transactionService(transactions, cells, categories);
-    MonthlyReportService reportService(transactions, cells);
+    MonthlyReportService reportService(transactions, cells, categories);
     SodiumPasswordHasher passwordHasher;
     UserService userService(users, passwordHasher);
 
@@ -250,11 +251,35 @@ int main()
                 report->totalExpensesInMinorUnits == 2100 &&
                 report->balanceInMinorUnits == 7900 && report->categories.size() == 2,
             "monthly report contains totals, category breakdown, and exact month boundaries");
+    const auto foodReportLine = std::find_if(
+        report->categories.begin(), report->categories.end(),
+        [](const CategoryReportLine& line) { return line.categoryName == "Food"; });
+    require(foodReportLine != report->categories.end() &&
+                foodReportLine->monthlyBudgetInMinorUnits == 45000 &&
+                foodReportLine->expensesInMinorUnits == 2100 &&
+                foodReportLine->remainingBudgetInMinorUnits == 42900 &&
+                !foodReportLine->overBudget,
+            "monthly report calculates remaining category budget");
     const auto emptyReport = reportService.generate(owner->getUserId(), cellId, "2024-02");
     require(emptyReport && emptyReport->totalIncomeInMinorUnits == 0 &&
                 emptyReport->totalExpensesInMinorUnits == 0 &&
-                emptyReport->balanceInMinorUnits == 0 && emptyReport->categories.empty(),
-            "empty leap-month report contains zero totals");
+                emptyReport->balanceInMinorUnits == 0 &&
+                emptyReport->categories.size() == 1 &&
+                emptyReport->categories.front().remainingBudgetInMinorUnits == 45000,
+            "empty leap-month report retains budget progress with zero spending");
+    require(categoryService.setMonthlyBudget(
+                owner->getUserId(), cellId, foodCategory->getCategoryId(), 1000) ==
+                CategoryOperationResult::SUCCESS,
+            "lower category budget for over-budget report");
+    const auto overBudgetReport = reportService.generate(
+        owner->getUserId(), cellId, "2026-07");
+    const auto overBudgetLine = std::find_if(
+        overBudgetReport->categories.begin(), overBudgetReport->categories.end(),
+        [](const CategoryReportLine& line) { return line.categoryName == "Food"; });
+    require(overBudgetLine != overBudgetReport->categories.end() &&
+                overBudgetLine->remainingBudgetInMinorUnits == -1100 &&
+                overBudgetLine->overBudget,
+            "monthly report identifies category overspending");
     require(!reportService.generate(owner->getUserId(), cellId, "2026-13") &&
                 !reportService.generate(
                     users.findUserByUsername("secure")->getUserId(), cellId, "2026-07"),

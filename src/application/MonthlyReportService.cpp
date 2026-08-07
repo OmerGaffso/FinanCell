@@ -29,8 +29,11 @@ std::int64_t checkedSubtract(std::int64_t left, std::int64_t right)
 
 MonthlyReportService::MonthlyReportService(
     TransactionRepository& transactionRepository,
-    CellRepository& cellRepository)
-    : m_transactionRepository(transactionRepository), m_cellRepository(cellRepository)
+    CellRepository& cellRepository,
+    CategoryRepository& categoryRepository)
+    : m_transactionRepository(transactionRepository),
+      m_cellRepository(cellRepository),
+      m_categoryRepository(categoryRepository)
 {
 }
 
@@ -45,6 +48,14 @@ std::optional<MonthlyReport> MonthlyReportService::generate(
     MonthlyReport report;
     report.month = month;
     std::map<std::uint64_t, CategoryReportLine> lines;
+    for (const Category& category : m_categoryRepository.findCategoriesByCellId(cellId))
+    {
+        if (category.getMonthlyBudgetInMinorUnits() <= 0) continue;
+        auto& line = lines[category.getCategoryId()];
+        line.categoryId = category.getCategoryId();
+        line.categoryName = category.getName();
+        line.monthlyBudgetInMinorUnits = category.getMonthlyBudgetInMinorUnits();
+    }
     for (const Transaction& transaction : m_transactionRepository.findTransactionsByDateRange(
              cellId, range->first, range->second))
     {
@@ -68,6 +79,12 @@ std::optional<MonthlyReport> MonthlyReportService::generate(
     for (auto& [id, line] : lines)
     {
         static_cast<void>(id);
+        if (line.monthlyBudgetInMinorUnits > 0)
+        {
+            line.remainingBudgetInMinorUnits = checkedSubtract(
+                line.monthlyBudgetInMinorUnits, line.expensesInMinorUnits);
+            line.overBudget = line.expensesInMinorUnits > line.monthlyBudgetInMinorUnits;
+        }
         report.categories.push_back(std::move(line));
     }
     return report;

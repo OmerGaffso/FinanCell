@@ -30,7 +30,8 @@ int main()
         SQLiteTransactionRepository transactionRepository(database);
         TransactionService transactionService{
             transactionRepository, cellRepository, categoryRepository};
-        MonthlyReportService monthlyReportService{transactionRepository, cellRepository};
+        MonthlyReportService monthlyReportService{
+            transactionRepository, cellRepository, categoryRepository};
 
         ConsoleUI ui{
             userService,

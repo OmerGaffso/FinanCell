@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <exception>
 #include <iomanip>
+#include <algorithm>
 #include <sstream>
 #include <string>
 
@@ -25,6 +26,14 @@ QString formatMoney(std::int64_t amount, const std::string& currency)
     if (negative) output << '-';
     output << magnitude / 100 << '.' << std::setw(2) << std::setfill('0')
            << magnitude % 100 << ' ' << currency;
+    return QString::fromStdString(output.str());
+}
+
+QString formatPercentage(long double ratio)
+{
+    std::ostringstream output;
+    output << std::fixed << std::setprecision(1)
+           << static_cast<double>(ratio * 100.0L) << "% used";
     return QString::fromStdString(output.str());
 }
 }
@@ -82,6 +91,34 @@ bool ReportController::generateReport(qulonglong cellId, const QString& month)
                          formatMoney(line.incomeInMinorUnits, cell->getCurrency()));
             value.insert(QStringLiteral("expensesText"),
                          formatMoney(line.expensesInMinorUnits, cell->getCurrency()));
+            const bool hasBudget = line.monthlyBudgetInMinorUnits > 0;
+            value.insert(QStringLiteral("hasBudget"), hasBudget);
+            value.insert(QStringLiteral("overBudget"), line.overBudget);
+            if (hasBudget)
+            {
+                const long double usage =
+                    static_cast<long double>(line.expensesInMinorUnits) /
+                    static_cast<long double>(line.monthlyBudgetInMinorUnits);
+                value.insert(QStringLiteral("budgetText"),
+                             formatMoney(line.monthlyBudgetInMinorUnits,
+                                         cell->getCurrency()));
+                value.insert(QStringLiteral("remainingBudgetText"),
+                             formatMoney(line.remainingBudgetInMinorUnits,
+                                         cell->getCurrency()));
+                value.insert(QStringLiteral("budgetUsageText"),
+                             formatPercentage(usage));
+                value.insert(QStringLiteral("budgetProgress"),
+                             static_cast<double>(std::min(usage, 1.0L)));
+                value.insert(
+                    QStringLiteral("budgetStatusText"),
+                    line.overBudget
+                        ? QStringLiteral("%1 over budget").arg(formatMoney(
+                              -line.remainingBudgetInMinorUnits,
+                              cell->getCurrency()))
+                        : QStringLiteral("%1 remaining").arg(formatMoney(
+                              line.remainingBudgetInMinorUnits,
+                              cell->getCurrency())));
+            }
             lines.append(value);
         }
         m_hasReport = true;
