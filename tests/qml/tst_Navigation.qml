@@ -170,6 +170,10 @@ TestCase {
 
         userController.setLoggedIn(true)
         expectPage("homePage")
+        stack.currentItem.userLookupRequested()
+        expectPage("userLookupPage")
+        stack.currentItem.backRequested()
+        expectPage("homePage")
         stack.currentItem.financialCellsRequested()
         expectPage("cellListPage")
         const grid = findChild(stack.currentItem, "financialCellGrid")
@@ -183,6 +187,20 @@ TestCase {
         stack.currentItem.cellSelected()
         expectPage("cellDashboardPage")
 
+        stack.currentItem.membersRequested()
+        expectPage("memberPage")
+        stack.currentItem.addRequested()
+        expectPage("memberLookupPage")
+        stack.currentItem.backRequested()
+        expectPage("memberPage")
+        stack.currentItem.backRequested()
+        expectPage("cellDashboardPage")
+
+        stack.currentItem.categoriesRequested()
+        expectPage("categoryPage")
+        stack.currentItem.backRequested()
+        expectPage("cellDashboardPage")
+
         stack.currentItem.transactionsRequested()
         expectPage("transactionPage")
         stack.currentItem.addRequested()
@@ -190,6 +208,11 @@ TestCase {
         expectResponsiveForm(440)
         stack.currentItem.backRequested()
         expectPage("transactionPage")
+        stack.currentItem.backRequested()
+        expectPage("cellDashboardPage")
+
+        stack.currentItem.reportRequested()
+        expectPage("monthlyReportPage")
         stack.currentItem.backRequested()
         expectPage("cellDashboardPage")
 
