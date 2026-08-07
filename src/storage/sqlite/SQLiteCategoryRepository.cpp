@@ -60,7 +60,8 @@ std::vector<Category> SQLiteCategoryRepository::findCategoriesByCellId(
     SQLiteStatement statement(
         m_database,
         "SELECT id, cell_id, name, budget_minor FROM categories "
-        "WHERE cell_id = ? ORDER BY name COLLATE NOCASE, id;");
+        "WHERE cell_id = ? "
+        "ORDER BY CASE WHEN name COLLATE NOCASE = 'General' THEN 0 ELSE 1 END, id;");
     statement.bindUInt64(1, cellId);
     std::vector<Category> categories;
     while (statement.next()) categories.push_back(readCategory(statement));

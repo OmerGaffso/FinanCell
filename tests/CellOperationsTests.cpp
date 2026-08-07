@@ -149,6 +149,14 @@ int main()
     require(categoryService.createCategory(
                 owner->getUserId(), cellId, "salary") == CategoryOperationResult::ALREADY_EXISTS,
             "category names are unique case-insensitively");
+    const auto orderedCategories = categoryService.getCategoriesForCell(
+        owner->getUserId(), cellId);
+    require(orderedCategories && orderedCategories->size() == 4 &&
+                orderedCategories->at(0).getName() == "General" &&
+                orderedCategories->at(1).getName() == "Salary" &&
+                orderedCategories->at(2).getName() == "Food" &&
+                orderedCategories->at(3).getName() == "Kid's Food",
+            "categories keep General first and preserve creation order");
     require(categoryService.createCategory(
                 guest->getUserId(), cellId, "Denied") == CategoryOperationResult::NOT_AUTHORIZED,
             "guest cannot create categories");
