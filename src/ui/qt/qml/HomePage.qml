@@ -6,6 +6,8 @@ Page {
     id: page
     focus: true
 
+    readonly property real pageMargin: width < 480 ? 16 : 24
+
     required property var controller
     signal financialCellsRequested()
     signal userLookupRequested()
@@ -20,7 +22,8 @@ Page {
 
     ColumnLayout {
         anchors.centerIn: parent
-        width: Math.min(parent.width - 48, 440)
+        width: Math.max(0, Math.min(
+            parent.width - (2 * page.pageMargin), 440))
         spacing: 16
 
         Image {

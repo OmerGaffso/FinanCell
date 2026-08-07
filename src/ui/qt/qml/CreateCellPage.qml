@@ -6,6 +6,8 @@ Page {
     id: page
     focus: true
 
+    readonly property real pageMargin: width < 480 ? 16 : 24
+
     required property var controller
     signal backRequested()
     signal cellCreated()
@@ -26,12 +28,14 @@ Page {
     }
 
     ScrollView {
+        id: formScroll
         anchors.fill: parent
         contentWidth: availableWidth
 
         ColumnLayout {
-            width: Math.min(page.width - 48, 440)
-            x: (page.width - width) / 2
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Math.max(0, Math.min(
+                formScroll.availableWidth - (2 * page.pageMargin), 440))
             spacing: 14
 
             Item {
