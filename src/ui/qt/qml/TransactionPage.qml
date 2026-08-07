@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Page {
     id: page
     focus: true
+    readonly property real pageMargin: width < 480 ? 16 : 24
     required property var controller
     required property var cellState
     signal backRequested()
@@ -19,7 +20,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
+        anchors.margins: page.pageMargin
         spacing: 12
 
         RowLayout {
@@ -117,18 +118,18 @@ Page {
                 color: brand.surface
                 border.color: brand.border
 
-                Column {
+                ColumnLayout {
                     id: details
-                    x: 14
-                    y: 14
-                    width: parent.width - 28
+                    anchors.fill: parent
+                    anchors.margins: 14
                     spacing: 5
 
-                    Row {
-                        width: parent.width
+                    RowLayout {
+                        Layout.fillWidth: true
                         spacing: 8
                         Label {
-                            width: Math.max(0, parent.width - amountLabel.implicitWidth - 8)
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
                             text: modelData.description
                             font.bold: true
                             color: brand.navy
@@ -142,15 +143,15 @@ Page {
                         }
                     }
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("%1 · %2 · %3")
                               .arg(modelData.categoryName)
                               .arg(modelData.type)
                               .arg(modelData.dateText)
                         color: brand.mutedText
-                        elide: Text.ElideRight
+                        wrapMode: Text.WordWrap
                     }
-                    Row {
+                    RowLayout {
                         visible: modelData.editable
                         spacing: 8
                         Button {

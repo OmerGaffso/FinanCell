@@ -6,6 +6,8 @@ Page {
     id: page
     focus: true
 
+    readonly property real pageMargin: width < 480 ? 16 : 24
+
     required property var controller
     signal backRequested()
     signal membersRequested()
@@ -25,12 +27,14 @@ Page {
     Keys.onEscapePressed: page.backRequested()
 
     ScrollView {
+        id: dashboardScroll
         anchors.fill: parent
         contentWidth: availableWidth
 
         ColumnLayout {
-            width: Math.max(0, page.width - 48)
-            x: 24
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Math.max(0, dashboardScroll.availableWidth -
+                            (2 * page.pageMargin))
             spacing: 16
 
             Item { Layout.preferredHeight: 8 }
@@ -46,7 +50,17 @@ Page {
                     onClicked: page.backRequested()
                 }
 
-                Item { Layout.fillWidth: true }
+                Label {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: controller.hasSelectedCell
+                          ? controller.selectedCell.name
+                          : qsTr("Financial cell")
+                    font.pixelSize: 28
+                    font.bold: true
+                    wrapMode: Text.WordWrap
+                    color: brand.navy
+                }
 
                 Image {
                     Layout.preferredWidth: 52
@@ -56,17 +70,6 @@ Page {
                     mipmap: true
                     Accessible.name: qsTr("FinanCell logo")
                 }
-            }
-
-            Label {
-                Layout.fillWidth: true
-                text: controller.hasSelectedCell
-                      ? controller.selectedCell.name
-                      : qsTr("Financial cell")
-                font.pixelSize: 28
-                font.bold: true
-                wrapMode: Text.WordWrap
-                color: brand.navy
             }
 
             Label {
@@ -87,22 +90,21 @@ Page {
                 color: brand.surface
                 border.color: brand.border
 
-                Column {
+                ColumnLayout {
                     id: balanceSummary
 
-                    x: 16
-                    y: 16
-                    width: parent.width - 32
+                    anchors.fill: parent
+                    anchors.margins: 16
                     spacing: 6
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("Current balance")
                         color: brand.mutedText
                     }
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: controller.hasSelectedCell
                               ? controller.selectedCell.balanceText
                               : qsTr("Unavailable")
@@ -119,7 +121,7 @@ Page {
                     }
 
                     Label {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("Recorded income minus recorded expenses")
                         wrapMode: Text.WordWrap
                         color: brand.mutedText
@@ -137,7 +139,7 @@ Page {
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: page.width >= 620 ? 2 : 1
+                columns: page.width >= 900 ? 3 : page.width >= 520 ? 2 : 1
                 columnSpacing: 10
                 rowSpacing: 10
 
